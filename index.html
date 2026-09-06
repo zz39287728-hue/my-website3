@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZAINTERIOR Client Portal</title>
+    <meta name="description" content="Ultra-premium, interactive web platform for ZAINTERIOR elite architectural and luxury interior design studio." />
+    <meta property="og:title" content="ZAINTERIOR Client Portal" />
+    <meta property="og:description" content="Ultra-premium, interactive web platform for ZAINTERIOR elite architectural and luxury interior design studio." />
+    
+    <!-- Google Fonts: Premium Fonts for English and Arabic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gold: {
+                50: '#FDFBF7',
+                100: '#F8F3EA',
+                200: '#EFE3D1',
+                300: '#E3CEB1',
+                400: '#D4B58D',
+                500: '#C59C6A', // Light Gold (For Dark Mode)
+                600: '#B08552',
+                700: '#A68868', // Darker Gold (For Light Mode)
+                800: '#7A5735',
+                900: '#63472D',
+                950: '#362516',
+              },
+              luxury: {
+                50: '#F5F5F4',
+                100: '#EAE9E7',
+                200: '#D1CECA',
+                300: '#B3AEA8',
+                400: '#928C85',
+                500: '#756F68',
+                600: '#5A554F',
+                700: '#48443F',
+                800: '#312E29', // Secondary/Borders (Dark Warm Charcoal)
+                900: '#262420', // Cards/Sidebar
+                950: '#1A1815', // Main Background
+              }
+            },
+            fontFamily: {
+              sans: ['Outfit', 'Tajawal', 'sans-serif'],
+              serif: ['Cinzel', 'Amiri', 'serif'],
+            },
+            animation: {
+              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'float': 'float 6s ease-in-out infinite',
+              'shimmer': 'shimmer 2s linear infinite',
+              'glow': 'glow 2s ease-in-out infinite alternate',
+            },
+            keyframes: {
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' },
+              },
+              shimmer: {
+                '0%': { backgroundPosition: '-1000px 0' },
+                '100%': { backgroundPosition: '1000px 0' },
+              },
+              glow: {
+                '0%': { boxShadow: '0 0 5px rgba(197,156,106,0.2)' },
+                '100%': { boxShadow: '0 0 20px rgba(197,156,106,0.6)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+
+    <style>
+      /* Custom Scrollbar for luxury feel */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: #262420; }
+      ::-webkit-scrollbar-thumb { background: #48443F; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #A68868; }
+      
+      /* Print styles for Invoice */
+      @media print {
+        body * { visibility: hidden; }
+        #printable-invoice, #printable-invoice *, #printable-tax-invoice, #printable-tax-invoice * { visibility: visible; }
+        #printable-invoice, #printable-tax-invoice { position: absolute; left: 0; top: 0; width: 100%; }
+      }
+      
+      /* Hide scrollbar for VR container */
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      
+      /* Smooth transitions for all interactive elements */
+      a, button, input, select, textarea {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    </style>
+  </head>
+  <body class="bg-luxury-950 text-luxury-200 font-sans antialiased selection:bg-gold-500 selection:text-luxury-950">
+    <div id="root" class="min-h-screen w-full flex flex-col"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>

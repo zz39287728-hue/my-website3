@@ -1,0 +1,11 @@
+{
+  "name": "ZAINTERIOR Client Portal",
+  "description": "Ultra-premium, interactive web platform for ZAINTERIOR elite architectural and luxury interior design studio.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,103 @@
+import fs from 'fs';
+
+const path = 'src/pages/Communication.tsx';
+let content = fs.readFileSync(path, 'utf8');
+
+// 1. Add state
+const stateTarget = `  const [guestPhoneConfirm, setGuestPhoneConfirm] = useState('');`;
+const stateReplacement = `  const [guestPhoneConfirm, setGuestPhoneConfirm] = useState('');\n  const [guestCountryCode, setGuestCountryCode] = useState('+973');`;
+content = content.replace(stateTarget, stateReplacement);
+
+// 2. Modify executeBooking
+const execTarget = `      initiatedBy: (isAdmin ? 'ARCHITECT' : 'CLIENT') as 'ARCHITECT' | 'CLIENT',
+      cost,
+      isGuestBooking: activeClient.profile.isGuest,
+      guestPhone: guestPhone || undefined
+    };`;
+const execReplacement = `      initiatedBy: (isAdmin ? 'ARCHITECT' : 'CLIENT') as 'ARCHITECT' | 'CLIENT',
+      cost,
+      isGuestBooking: activeClient.profile.isGuest,
+      guestPhone: guestPhone ? \`\${guestCountryCode} \${guestPhone}\` : undefined
+    };`;
+content = content.replace(execTarget, execReplacement);
+
+// 3. Update Inputs UI
+const inputsTarget = `                    <div>
+                      <label className="block text-sm font-bold text-luxury-700 dark:text-luxury-300 mb-1.5">
+                        {isAr ? 'رقم الهاتف' : 'Phone Number'}
+                      </label>
+                      <input
+                        type="tel"
+                        value={guestPhone}
+                        onChange={(e) => setGuestPhone(e.target.value)}
+                        className="w-full bg-luxury-50 dark:bg-luxury-950 border border-luxury-200 dark:border-luxury-800 rounded-xl px-4 py-3.5 font-medium text-luxury-900 dark:text-luxury-50 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors"
+                        placeholder={isAr ? '+973 XXXX XXXX' : '+973 XXXX XXXX'}
+                        dir="ltr"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-luxury-700 dark:text-luxury-300 mb-1.5">
+                        {isAr ? 'تأكيد رقم الهاتف' : 'Confirm Phone Number'}
+                      </label>
+                      <input
+                        type="tel"
+                        value={guestPhoneConfirm}
+                        onChange={(e) => setGuestPhoneConfirm(e.target.value)}
+                        className="w-full bg-luxury-50 dark:bg-luxury-950 border border-luxury-200 dark:border-luxury-800 rounded-xl px-4 py-3.5 font-medium text-luxury-900 dark:text-luxury-50 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors"
+                        placeholder={isAr ? '+973 XXXX XXXX' : '+973 XXXX XXXX'}
+                        dir="ltr"
+                      />
+                    </div>`;
+
+const inputsReplacement = `                    <div>
+                      <label className="block text-sm font-bold text-luxury-700 dark:text-luxury-300 mb-1.5">
+                        {isAr ? 'رقم الهاتف' : 'Phone Number'}
+                      </label>
+                      <div className="flex gap-2" dir="ltr">
+                        <select
+                          value={guestCountryCode}
+                          onChange={(e) => setGuestCountryCode(e.target.value)}
+                          className="w-28 bg-luxury-50 dark:bg-luxury-950 border border-luxury-200 dark:border-luxury-800 rounded-xl px-2 py-3.5 font-medium text-luxury-900 dark:text-luxury-50 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors"
+                        >
+                          <option value="+973">+973 (BH)</option>
+                          <option value="+966">+966 (SA)</option>
+                          <option value="+971">+971 (AE)</option>
+                          <option value="+965">+965 (KW)</option>
+                          <option value="+974">+974 (QA)</option>
+                          <option value="+968">+968 (OM)</option>
+                          <option value="+44">+44 (UK)</option>
+                          <option value="+1">+1 (US)</option>
+                          <option value="+20">+20 (EG)</option>
+                          <option value="+962">+962 (JO)</option>
+                          <option value="+961">+961 (LB)</option>
+                        </select>
+                        <input
+                          type="tel"
+                          value={guestPhone}
+                          onChange={(e) => setGuestPhone(e.target.value)}
+                          className="flex-1 bg-luxury-50 dark:bg-luxury-950 border border-luxury-200 dark:border-luxury-800 rounded-xl px-4 py-3.5 font-medium text-luxury-900 dark:text-luxury-50 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors"
+                          placeholder="XXXX XXXX"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-luxury-700 dark:text-luxury-300 mb-1.5">
+                        {isAr ? 'تأكيد رقم الهاتف' : 'Confirm Phone Number'}
+                      </label>
+                      <div className="flex gap-2" dir="ltr">
+                        <div className="w-28 bg-luxury-100 dark:bg-luxury-900/50 border border-luxury-200 dark:border-luxury-800 rounded-xl px-2 py-3.5 font-medium text-luxury-500 dark:text-luxury-400 flex items-center justify-center">
+                          {guestCountryCode}
+                        </div>
+                        <input
+                          type="tel"
+                          value={guestPhoneConfirm}
+                          onChange={(e) => setGuestPhoneConfirm(e.target.value)}
+                          className="flex-1 bg-luxury-50 dark:bg-luxury-950 border border-luxury-200 dark:border-luxury-800 rounded-xl px-4 py-3.5 font-medium text-luxury-900 dark:text-luxury-50 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors"
+                          placeholder="XXXX XXXX"
+                        />
+                      </div>
+                    </div>`;
+
+content = content.replace(inputsTarget, inputsReplacement);
+
+fs.writeFileSync(path, content);

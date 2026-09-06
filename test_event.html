@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <script>
+    window.addEventListener('reset-view', (e) => console.log('Reset view:', e.detail));
+    window.dispatchEvent(new CustomEvent('reset-view', { detail: 'BOOKING' }));
+  </script>
+</body>
+</html>
