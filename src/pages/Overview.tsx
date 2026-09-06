@@ -306,7 +306,7 @@ export const Profile: React.FC = () => {
               onClick={() => setLang(isRTL ? 'en' : 'ar')}
               className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${isRTL ? 'bg-gradient-to-r from-gold-700 to-gold-600 dark:from-gold-600 dark:to-gold-400' : 'bg-luxury-300 dark:bg-luxury-700'}`}
             >
-              <span className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-luxury-50 transition-transform ${isRTL ? 'translate-x-6' : 'translate-x-1'}`} />
+              <span className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-luxury-50 transition-transform ${isRTL ? (isRTL ? '-translate-x-6' : 'translate-x-6') : (isRTL ? '-translate-x-1' : 'translate-x-1')}`} />
             </button>
           </motion.div>
 
@@ -322,7 +322,7 @@ export const Profile: React.FC = () => {
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
               className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${isDark ? 'bg-gradient-to-r from-gold-700 to-gold-600 dark:from-gold-600 dark:to-gold-400' : 'bg-luxury-300 dark:bg-luxury-700'}`}
             >
-              <span className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-luxury-50 transition-transform ${isDark ? 'translate-x-6' : 'translate-x-1'}`} />
+              <span className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-luxury-50 transition-transform ${isDark ? (isRTL ? '-translate-x-6' : 'translate-x-6') : (isRTL ? '-translate-x-1' : 'translate-x-1')}`} />
             </button>
           </motion.div>
           
@@ -333,7 +333,7 @@ export const Profile: React.FC = () => {
                 <p className="text-sm font-bold text-luxury-500">{t('profile.notificationsDesc')}</p>
               </div>
               <button className="relative inline-flex h-7 w-12 items-center rounded-full bg-gradient-to-r from-gold-700 to-gold-600 dark:from-gold-600 dark:to-gold-400">
-                <span className="inline-block h-5 w-5 transform rounded-full bg-white dark:bg-luxury-50 translate-x-6" />
+                <span className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-luxury-50 ${isRTL ? '-translate-x-6' : 'translate-x-6'}`} />
               </button>
             </motion.div>
           )}
@@ -358,7 +358,7 @@ export const Profile: React.FC = () => {
           <div className="pt-6 border-t border-luxury-200 dark:border-luxury-800">
             <Button 
               onClick={() => setRole('GUEST')} 
-              className="w-full bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 border-none shadow-none"
+              className="w-full text-white dark:text-white hover:opacity-90 border-none shadow-none"
             >
               <LogOut size={18} /> {t('app.logout')}
             </Button>

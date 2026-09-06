@@ -2228,7 +2228,7 @@ export const AdminProfile: React.FC = () => {
               onClick={() => setLang(isRTL ? 'en' : 'ar')}
               className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${isRTL ? 'bg-gradient-to-r from-gold-700 to-gold-600 dark:from-gold-600 dark:to-gold-400' : 'bg-luxury-300 dark:bg-luxury-700'}`}
             >
-              <span className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-luxury-50 transition-transform ${isRTL ? 'translate-x-6' : 'translate-x-1'}`} />
+              <span className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-luxury-50 transition-transform ${isRTL ? (isRTL ? '-translate-x-6' : 'translate-x-6') : (isRTL ? '-translate-x-1' : 'translate-x-1')}`} />
             </button>
           </div>
 
@@ -2244,7 +2244,7 @@ export const AdminProfile: React.FC = () => {
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
               className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${isDark ? 'bg-gradient-to-r from-gold-700 to-gold-600 dark:from-gold-600 dark:to-gold-400' : 'bg-luxury-300 dark:bg-luxury-700'}`}
             >
-              <span className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-luxury-50 transition-transform ${isDark ? 'translate-x-6' : 'translate-x-1'}`} />
+              <span className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-luxury-50 transition-transform ${isDark ? (isRTL ? '-translate-x-6' : 'translate-x-6') : (isRTL ? '-translate-x-1' : 'translate-x-1')}`} />
             </button>
           </div>
         </div>

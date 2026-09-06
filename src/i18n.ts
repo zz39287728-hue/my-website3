@@ -15,7 +15,7 @@ export const dict: Record<string, Record<string, string>> = {
     'nav.profile': 'Profile',
     'app.title': 'ZAINTERIOR',
     'app.subtitle': 'DESIGN & EXECUTION',
-    'app.logout': 'Secure Logout',
+    'app.logout': 'Logout',
     
     // Landing Page - Navigation
     'landing.nav.about': 'About Us',
@@ -439,7 +439,7 @@ export const dict: Record<string, Record<string, string>> = {
     'nav.profile': 'الملف الشخصي',
     'app.title': 'زينتيريور',
     'app.subtitle': 'تصميم وتنفيذ',
-    'app.logout': 'تسجيل خروج آمن',
+    'app.logout': 'تسجيل خروج',
     
     // Landing Page - Navigation
     'landing.nav.about': 'من نحن',

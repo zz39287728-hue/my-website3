@@ -244,7 +244,7 @@ const INITIAL_STORE_DATA = {
       title: 'سجادة حريرية نيو-كلاسيك',
       category: 'سجاد وإكسسوارات',
       price: 450,
-      image: 'https://images.unsplash.com/photo-1575414003593-0a30026e49c7?auto=format&fit=crop&q=80&w=1000',
+      image: 'https://upload.wikimedia.org/wikipedia/commons/3/3a/Mantes_carpet_Louvre_OA6610_detail1.jpg',
       description: 'سجادة يدوية الصنع بخيوط الحرير والقطن الطبيعي، تضيف لمسة دافئة للمساحة.',
       isNew: false
     },

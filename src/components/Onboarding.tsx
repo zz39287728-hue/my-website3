@@ -42,9 +42,9 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
         title: isAr ? 'ما هو الأسلوب المفضل لديك في التصميم الداخلي؟' : 'What is your preferred interior design style?',
         options: [
           { val: 'modern', label: isAr ? 'عصري وبسيط' : 'Modern & Minimalist', img: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=400' },
-          { val: 'classic', label: isAr ? 'كلاسيكي فخم' : 'Classic Luxury', img: 'https://images.unsplash.com/photo-1600607687920-4e2a09c15468?auto=format&fit=crop&q=80&w=400' },
+          { val: 'classic', label: isAr ? 'كلاسيكي فخم' : 'Classic Luxury', img: 'https://images.unsplash.com/photo-1577140917170-285929fb55b7?auto=format&fit=crop&q=80&w=400' },
           { val: 'neoclassic', label: isAr ? 'نيو كلاسيك' : 'Neo-Classic', img: 'https://images.unsplash.com/photo-1600210491892-03d54c0aaf87?auto=format&fit=crop&q=80&w=400' },
-          { val: 'bohemian', label: isAr ? 'بوهيمي أو ريفي' : 'Bohemian/Rustic', img: 'https://images.unsplash.com/photo-1588854337221-4cfb466624d7?auto=format&fit=crop&q=80&w=400' }
+          { val: 'bohemian', label: isAr ? 'بوهيمي أو ريفي' : 'Bohemian/Rustic', img: 'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?auto=format&fit=crop&q=80&w=400' }
         ]
       },
       {
@@ -52,9 +52,9 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
         icon: Palette,
         title: isAr ? 'ما هي الألوان التي تميل إليها في مساحتك الخاصة؟' : 'What colors do you lean towards in your personal space?',
         options: [
-          { val: 'light', label: isAr ? 'ألوان فاتحة وهادئة' : 'Light & Calm', img: 'https://images.unsplash.com/photo-1598928506311-c55d439524e9?auto=format&fit=crop&q=80&w=400', colors: ['#F5F5DC', '#FFF8DC', '#F0E68C'] },
+          { val: 'light', label: isAr ? 'ألوان فاتحة وهادئة' : 'Light & Calm', img: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?auto=format&fit=crop&q=80&w=400', colors: ['#F5F5DC', '#FFF8DC', '#F0E68C'] },
           { val: 'warm', label: isAr ? 'ألوان دافئة وترابية' : 'Warm & Earthy', img: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=400', colors: ['#D2B48C', '#8B4513', '#A0522D'] },
-          { val: 'dark', label: isAr ? 'ألوان داكنة وجريئة' : 'Dark & Bold', img: 'https://images.unsplash.com/photo-1618220179428-22790b46a0eb?auto=format&fit=crop&q=80&w=400', colors: ['#2F4F4F', '#191970', '#800000'] },
+          { val: 'dark', label: isAr ? 'ألوان داكنة وجريئة' : 'Dark & Bold', img: 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format&fit=crop&q=80&w=400', colors: ['#2F4F4F', '#191970', '#800000'] },
           { val: 'mixed', label: isAr ? 'مزيج من الألوان' : 'Mixed Colors', img: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&q=80&w=400', colors: ['#4682B4', '#D2B48C', '#2F4F4F'] }
         ]
       },
@@ -63,10 +63,10 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
         icon: Home,
         title: isAr ? 'ما هي المساحة الأكثر أهمية بالنسبة لك في المنزل؟' : 'Which space is the most important to you in the house?',
         options: [
-          { val: 'living', label: isAr ? 'غرفة المعيشة والضيوف' : 'Living & Guest Room', img: 'https://images.unsplash.com/photo-1583847268964-b28ce8f30f9d?auto=format&fit=crop&q=80&w=400' },
+          { val: 'living', label: isAr ? 'غرفة المعيشة والضيوف' : 'Living & Guest Room', img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=400' },
           { val: 'bedroom', label: isAr ? 'غرفة النوم الرئيسية' : 'Master Bedroom', img: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&q=80&w=400' },
-          { val: 'kitchen', label: isAr ? 'المطبخ ومساحة الطعام' : 'Kitchen & Dining', img: 'https://images.unsplash.com/photo-1556910103-1c02745a872f?auto=format&fit=crop&q=80&w=400' },
-          { val: 'outdoor', label: isAr ? 'المساحات الخارجية' : 'Outdoor Spaces', img: 'https://images.unsplash.com/photo-1605814526019-35cb35f3f01f?auto=format&fit=crop&q=80&w=400' }
+          { val: 'kitchen', label: isAr ? 'المطبخ ومساحة الطعام' : 'Kitchen & Dining', img: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=400' },
+          { val: 'outdoor', label: isAr ? 'المساحات الخارجية' : 'Outdoor Spaces', img: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=400' }
         ]
       },
       {
@@ -83,25 +83,12 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
       }
     ];
 
-    if (preferences['family_type'] === 'family') {
+    if (preferences['family_type'] === 'family' || preferences['family_type'] === 'extended') {
       q.push({
         id: 'children_details',
         custom: true,
         icon: Users,
-        title: isAr ? 'تفاصيل عن الأطفال' : 'Children Details',
-      });
-    } else if (preferences['family_type'] === 'extended') {
-      q.push({
-        id: 'extended_details',
-        custom: true,
-        icon: UsersRound,
-        title: isAr ? 'تفاصيل العائلة الكبيرة' : 'Extended Family Details',
-      });
-      q.push({
-        id: 'children_details',
-        custom: true,
-        icon: Users,
-        title: isAr ? 'تفاصيل عن الأطفال (للعائلة الكبيرة)' : 'Children Details (Extended Family)',
+        title: isAr ? 'تفاصيل الأطفال' : 'Children Details',
       });
     }
 
@@ -133,10 +120,6 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
           if (!preferences[`child_${i}_gender`] || !preferences[`child_${i}_age`]) {
             return;
           }
-        }
-      } else if (q.custom && q.id === 'extended_details') {
-        if (!preferences['extended_family_count']) {
-          return;
         }
       } else if (q.custom && q.id === 'pets') {
         if (!preferences['has_pets']) return;
@@ -301,7 +284,7 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
 
         <div className="flex justify-center mb-8">
           {Array.from({ length: questions.length + 2 }).map((_, i) => (
-            <div key={i} className={`w-2 h-2 rounded-full mx-1 transition-all duration-500 ${i === step ? 'bg-gradient-to-r from-gold-500 to-gold-400 w-6' : 'bg-luxury-300 dark:bg-luxury-700'}`} />
+            <div key={i} className={`w-2 h-2 rounded-full mx-1 transition-all duration-500 ${i === step ? 'bg-[#EFE3D1]' : 'bg-luxury-300 dark:bg-luxury-700'}`} />
           ))}
         </div>
 
@@ -501,39 +484,31 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
                 <div className="space-y-6 text-left" dir={isAr ? 'rtl' : 'ltr'}>
                   {/* Children Count */}
                   <div>
-                    <label className="block text-sm font-bold text-luxury-900 dark:text-luxury-100 mb-3">
-                      {isAr ? 'كم عدد الأطفال الذي تصمم المنزل لأجلهم؟' : 'How many children are you designing for?'}
+                    <label className="block text-sm font-bold text-luxury-900 dark:text-luxury-100 mb-4 text-center">
+                      {isAr ? 'كم عدد الأطفال إجمالاً؟' : 'How many children in total?'}
                     </label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {['1', '2', '3', '4+'].map(num => (
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-3">
+                      {[
+                        { num: '1', ar: 'واحد', en: 'One' },
+                        { num: '2', ar: 'اثنين', en: 'Two' },
+                        { num: '3', ar: 'ثلاث', en: 'Three' },
+                        { num: '4', ar: 'أربع', en: 'Four' },
+                        { num: '5', ar: 'خمس', en: 'Five' },
+                        { num: '6', ar: 'ست', en: 'Six' },
+                        { num: '7', ar: 'سبع', en: 'Seven' },
+                        { num: '8', ar: 'ثمان', en: 'Eight' },
+                        { num: '9', ar: 'تسع', en: 'Nine' },
+                        { num: '10', ar: 'عشر', en: 'Ten' }
+                      ].map(item => (
                         <button
-                          key={num}
-                          onClick={() => {
-                            setPreferences(prev => {
-                              const next = { ...prev, children_count: num };
-                              if (num !== '4+') next['exact_children_count'] = num;
-                              return next;
-                            });
-                          }}
-                          className={`p-3 rounded-xl font-bold transition-all border text-center ${preferences['children_count'] === num ? 'bg-gold-500/10 border-gold-500 text-gold-700 dark:text-gold-400 shadow-md' : 'bg-white dark:bg-luxury-900 border-luxury-200 dark:border-luxury-800 text-luxury-600 dark:text-luxury-400 hover:border-gold-300'}`}
+                          key={item.num}
+                          onClick={() => setPreferences(prev => ({ ...prev, exact_children_count: item.num }))}
+                          className={`py-3 rounded-xl font-bold transition-all border text-center text-sm ${preferences['exact_children_count'] === item.num ? 'bg-gold-500/10 border-gold-500 text-gold-700 dark:text-gold-400 shadow-md transform scale-105' : 'bg-white dark:bg-luxury-900 border-luxury-200 dark:border-luxury-800 text-luxury-600 dark:text-luxury-400 hover:border-gold-300'}`}
                         >
-                          {num}
+                          {isAr ? item.ar : item.en}
                         </button>
                       ))}
                     </div>
-                    {preferences['children_count'] === '4+' && (
-                      <div className="mt-3 grid grid-cols-7 gap-1 sm:gap-2">
-                        {['4', '5', '6', '7', '8', '9', '10'].map(num => (
-                          <button
-                            key={num}
-                            onClick={() => setPreferences(prev => ({ ...prev, exact_children_count: num }))}
-                            className={`py-2 rounded-xl font-bold transition-all border text-center text-sm ${preferences['exact_children_count'] === num ? 'bg-gold-500/10 border-gold-500 text-gold-700 dark:text-gold-400 shadow-md' : 'bg-white dark:bg-luxury-900 border-luxury-200 dark:border-luxury-800 text-luxury-600 dark:text-luxury-400 hover:border-gold-300'}`}
-                          >
-                            {num}
-                          </button>
-                        ))}
-                      </div>
-                    )}
                   </div>
 
                   {/* Individual Children Details */}
@@ -580,34 +555,6 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
                       </div>
                     </div>
                   )}
-                </div>
-              ) : questions[step - 2].custom && questions[step - 2].id === 'extended_details' ? (
-                <div className="space-y-6 text-left" dir={isAr ? 'rtl' : 'ltr'}>
-                  {/* Family Count */}
-                  <div>
-                    <label className="block text-sm font-bold text-luxury-900 dark:text-luxury-100 mb-3">
-                      {isAr ? 'كم عدد أفراد العائلة إجمالاً؟' : 'Total number of family members?'}
-                    </label>
-                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-3">
-                      {['4', '5', '6', '7', '8', '9', '10'].map(num => (
-                        <button
-                          key={num}
-                          onClick={() => setPreferences(prev => ({ ...prev, extended_family_count: num }))}
-                          className={`py-2 rounded-xl font-bold transition-all border text-center text-sm ${preferences['extended_family_count'] === num ? 'bg-gold-500/10 border-gold-500 text-gold-700 dark:text-gold-400 shadow-md' : 'bg-white dark:bg-luxury-900 border-luxury-200 dark:border-luxury-800 text-luxury-600 dark:text-luxury-400 hover:border-gold-300'}`}
-                        >
-                          {num}
-                        </button>
-                      ))}
-                    </div>
-                    <input 
-                      type="number"
-                      min="1"
-                      value={preferences['extended_family_count'] || ''}
-                      onChange={(e) => setPreferences(prev => ({ ...prev, extended_family_count: e.target.value }))}
-                      placeholder={isAr ? 'أو أدخل رقمًا مخصصًا هنا...' : 'Or enter custom number here...'}
-                      className="w-full bg-white dark:bg-luxury-900 border border-luxury-200 dark:border-luxury-800 rounded-xl px-4 py-3 font-medium text-luxury-900 dark:text-luxury-50 focus:outline-none focus:border-gold-500"
-                    />
-                  </div>
                 </div>
               ) : questions[step - 2].custom && questions[step - 2].id === 'pets' ? (
                 <div className="space-y-6 text-left" dir={isAr ? 'rtl' : 'ltr'}>
@@ -737,8 +684,6 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
                   disabled={
                     questions[step - 2].custom && questions[step - 2].id === 'children_details'
                       ? (!preferences['exact_children_count'] || Array.from({ length: parseInt(preferences['exact_children_count'] || '0') }).some((_, i) => !preferences[`child_${i}_gender`] || !preferences[`child_${i}_age`]))
-                      : questions[step - 2].custom && questions[step - 2].id === 'extended_details'
-                      ? (!preferences['extended_family_count'])
                       : questions[step - 2].custom && questions[step - 2].id === 'pets'
                       ? (!preferences['has_pets'] || (preferences['has_pets'] === 'yes' && (!(preferences['pet_types']?.length > 0) || (preferences['pet_types'].includes('other') && !preferences['pet_type_other']))))
                       : !preferences[questions[step - 2].id]
@@ -746,8 +691,6 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
                   className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
                     (questions[step - 2].custom && questions[step - 2].id === 'children_details'
                       ? (!preferences['exact_children_count'] || Array.from({ length: parseInt(preferences['exact_children_count'] || '0') }).some((_, i) => !preferences[`child_${i}_gender`] || !preferences[`child_${i}_age`]))
-                      : questions[step - 2].custom && questions[step - 2].id === 'extended_details'
-                      ? (!preferences['extended_family_count'])
                       : questions[step - 2].custom && questions[step - 2].id === 'pets'
                       ? (!preferences['has_pets'] || (preferences['has_pets'] === 'yes' && (!(preferences['pet_types']?.length > 0) || (preferences['pet_types'].includes('other') && !preferences['pet_type_other']))))
                       : !preferences[questions[step - 2].id])
