@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewModule } from '../types';
 import { useAppContext } from '../App';
@@ -74,6 +74,22 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurren
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const { t, lang, role, setRole, globalState, setGlobalState, showGuestLockModal, setShowGuestLockModal } = useAppContext();
   const isRTL = lang === 'ar';
+
+  const notificationsRef = useRef<HTMLDivElement>(null);
+  const clientDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setIsNotificationsOpen(false);
+      }
+      if (clientDropdownRef.current && !clientDropdownRef.current.contains(event.target as Node)) {
+        setIsClientDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const activeClient = globalState.clients[globalState.activeClientId];
   const clientCartCount = activeClient?.cart?.length || 0;
@@ -351,8 +367,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurren
                       type="text" 
                       value={loginInput}
                       onChange={(e) => setLoginInput(e.target.value)}
-                      placeholder={isAr ? 'تسجيل الدخول عبر الهاتف أو البريد الإلكتروني' : 'Log in via Phone or Email'}
-                      className="w-full bg-white dark:bg-luxury-900 border border-luxury-200 dark:border-luxury-800 rounded-xl px-4 py-4 font-medium text-luxury-900 dark:text-luxury-50 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
+                      placeholder={isAr ? 'تسجيل الدخول عبر رقم الهاتف أو البريد الإلكتروني' : 'Log in via Phone Number or Email'}
+                      className="w-full bg-white dark:bg-luxury-900 border border-luxury-200 dark:border-luxury-800 rounded-xl px-4 py-4 font-medium text-luxury-900 dark:text-luxury-50 placeholder-luxury-400/50 dark:placeholder-luxury-500/50 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
                     />
                     <button
                       onClick={handleLoginSubmit}
@@ -476,7 +492,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurren
             
             {isClientWorkspace ? (
               <div className="flex items-center gap-4">
-                <div className="relative">
+                <div className="relative" ref={clientDropdownRef}>
                   <motion.button 
                     whileHover={{ scale: 1.02 }}
                     onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
@@ -488,10 +504,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurren
                   
                   <AnimatePresence>
                     {isClientDropdownOpen && (
-                      <>
-                        <div className="fixed inset-0 z-40" onClick={() => setIsClientDropdownOpen(false)} />
-                        <motion.div 
-                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 10, scale: 0.95 }}
                           transition={{ duration: 0.2 }}
@@ -515,7 +529,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurren
                             </motion.button>
                           ))}
                         </motion.div>
-                      </>
                     )}
                   </AnimatePresence>
                 </div>
@@ -585,7 +598,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurren
 
             {/* Notifications Button (Architect Only) */}
             {role === 'ARCHITECT' && (
-              <div className="relative">
+              <div className="relative" ref={notificationsRef}>
                 <motion.button 
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
@@ -599,11 +612,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurren
                     </span>
                   )}
                 </motion.button>
-
                 <AnimatePresence>
                   {isNotificationsOpen && (
-                    <>
-                      <div className="fixed inset-0 z-40" onClick={() => setIsNotificationsOpen(false)} />
                       <motion.div 
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -641,7 +651,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurren
                           )}
                         </div>
                       </motion.div>
-                    </>
                   )}
                 </AnimatePresence>
               </div>

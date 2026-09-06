@@ -632,7 +632,16 @@ export const AdminCalendar: React.FC = () => {
                 const dateString = `${yyyy}-${mm}-${dd}`;
                 
                 const isSelected = selectedDate === dateString;
-                const blocks = blockedSlots.filter(b => b.date === dateString);
+                const blocks = [
+                  ...blockedSlots.filter(b => b.date === dateString),
+                  ...allBookings.filter(b => b.date === dateString && b.status === 'Confirmed').map(b => ({
+                    id: b.id,
+                    date: b.date,
+                    time: b.time,
+                    durationHours: b.durationHours,
+                    reason: `Consultation: ${b.type}`
+                  }))
+                ];
                 const isFullyBlocked = blocks.some(b => b.time === 'ALL_DAY');
                 const dayBookings = allBookings.filter(b => b.date === dateString);
                 

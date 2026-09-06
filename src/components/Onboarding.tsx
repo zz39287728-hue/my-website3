@@ -31,6 +31,7 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
   const [otpCode, setOtpCode] = useState('');
   const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email');
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+  const [openAgeDropdown, setOpenAgeDropdown] = useState<number | null>(null);
 
   const isAr = lang === 'ar';
 
@@ -382,8 +383,8 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
                       type="text" 
                       value={loginInput}
                       onChange={(e) => setLoginInput(e.target.value)}
-                      placeholder={isAr ? 'تسجيل الدخول عبر الهاتف أو البريد الإلكتروني' : 'Log in via Phone or Email'}
-                      className="w-full bg-white dark:bg-luxury-900 border border-luxury-200 dark:border-luxury-800 rounded-xl px-4 py-4 font-medium text-luxury-900 dark:text-luxury-50 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
+                      placeholder={isAr ? 'تسجيل الدخول عبر رقم الهاتف أو البريد الإلكتروني' : 'Log in via Phone Number or Email'}
+                      className="w-full bg-white dark:bg-luxury-900 border border-luxury-200 dark:border-luxury-800 rounded-xl px-4 py-4 font-medium text-luxury-900 dark:text-luxury-50 placeholder-luxury-400/50 dark:placeholder-luxury-500/50 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
                     />
                     <button
                       onClick={handleLoginSubmit}
@@ -485,7 +486,7 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
                   {/* Children Count */}
                   <div>
                     <label className="block text-sm font-bold text-luxury-900 dark:text-luxury-100 mb-4 text-center">
-                      {isAr ? 'كم عدد الأطفال إجمالاً؟' : 'How many children in total?'}
+                      {isAr ? 'كم عدد الأطفال؟' : 'How many children?'}
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-3">
                       {[
@@ -517,7 +518,7 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
                       <label className="block text-sm font-bold text-luxury-900 dark:text-luxury-100 mb-3">
                         {isAr ? 'تفاصيل كل طفل' : 'Details for each child'}
                       </label>
-                      <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                      <div className="space-y-3 max-h-[350px] overflow-y-auto pb-32 pr-2 custom-scrollbar">
                         {Array.from({ length: parseInt(preferences['exact_children_count']) }).map((_, i) => (
                           <div key={i} className="flex flex-col xl:flex-row gap-3 items-start xl:items-center bg-luxury-50 dark:bg-luxury-800/50 p-3 rounded-xl border border-luxury-100 dark:border-luxury-800">
                             <span className="font-bold text-sm whitespace-nowrap shrink-0 min-w-[60px] dark:text-luxury-200">{isAr ? `الطفل ${i + 1}` : `Child ${i + 1}`}</span>
@@ -536,19 +537,45 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
                               </button>
                             </div>
                             <div className="relative w-full min-w-[90px]">
-                              <select 
-                                value={preferences[`child_${i}_age`] || ''}
-                                onChange={(e) => setPreferences(prev => ({ ...prev, [`child_${i}_age`]: e.target.value }))}
-                                className="w-full bg-white dark:bg-luxury-900 border border-luxury-200 dark:border-luxury-700 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:border-gold-500 dark:text-luxury-50 appearance-none cursor-pointer"
+                              <button
+                                type="button"
+                                onClick={() => setOpenAgeDropdown(openAgeDropdown === i ? null : i)}
+                                className="w-full flex items-center justify-between bg-white dark:bg-luxury-900 border border-luxury-200 dark:border-luxury-700 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:border-gold-500 dark:text-luxury-50 cursor-pointer"
                               >
-                                <option value="" disabled>{isAr ? 'العمر' : 'Age'}</option>
-                                {Array.from({ length: 25 }).map((_, j) => (
-                                  <option key={j + 1} value={j + 1}>{j + 1}</option>
-                                ))}
-                              </select>
-                              <div className="absolute inset-y-0 end-2 flex items-center pointer-events-none text-luxury-400">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                              </div>
+                                <span>{preferences[`child_${i}_age`] || (isAr ? 'العمر' : 'Age')}</span>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${openAgeDropdown === i ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6"/></svg>
+                              </button>
+
+                              <AnimatePresence>
+                                {openAgeDropdown === i && (
+                                  <>
+                                    <div 
+                                      className="fixed inset-0 z-10" 
+                                      onClick={() => setOpenAgeDropdown(null)}
+                                    />
+                                    <motion.div
+                                      initial={{ opacity: 0, y: -10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                      className="absolute top-full mt-1 left-0 w-full bg-white dark:bg-luxury-900 border border-luxury-200 dark:border-luxury-700 rounded-lg shadow-xl z-20 max-h-48 overflow-y-auto custom-scrollbar"
+                                    >
+                                      {Array.from({ length: 25 }).map((_, j) => (
+                                        <button
+                                          key={j + 1}
+                                          type="button"
+                                          onClick={() => {
+                                            setPreferences(prev => ({ ...prev, [`child_${i}_age`]: (j + 1).toString() }));
+                                            setOpenAgeDropdown(null);
+                                          }}
+                                          className={`w-full text-start px-3 py-2 text-sm transition-colors ${preferences[`child_${i}_age`] === (j + 1).toString() ? 'bg-gold-500/10 text-gold-700 dark:text-gold-400 font-bold' : 'hover:bg-luxury-50 dark:hover:bg-luxury-800 text-luxury-700 dark:text-luxury-200'}`}
+                                        >
+                                          {j + 1}
+                                        </button>
+                                      ))}
+                                    </motion.div>
+                                  </>
+                                )}
+                              </AnimatePresence>
                             </div>
                           </div>
                         ))}

@@ -238,33 +238,6 @@ export const FinanceHub: React.FC<FinanceHubProps> = ({ setView, defaultTab = 'i
             {activeTab === 'cart' ? t('cart.desc') : t('cart.invoices.desc')}
           </p>
         </div>
-        <div className="flex bg-luxury-100 dark:bg-luxury-900/50 p-1 rounded-xl self-start">
-          <button
-            onClick={() => setActiveTab('cart')}
-            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
-              activeTab === 'cart'
-                ? 'bg-white dark:bg-luxury-800 text-luxury-900 dark:text-luxury-50 shadow-sm'
-                : 'text-luxury-600 dark:text-luxury-400 hover:text-luxury-900 dark:hover:text-luxury-100'
-            }`}
-          >
-            {t('cart.tabs.cart')}
-            {totalCartCount > 0 && (
-              <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-[10px] bg-gold-600 text-white rounded-full">
-                {totalCartCount}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('invoices')}
-            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
-              activeTab === 'invoices'
-                ? 'bg-white dark:bg-luxury-800 text-luxury-900 dark:text-luxury-50 shadow-sm'
-                : 'text-luxury-600 dark:text-luxury-400 hover:text-luxury-900 dark:hover:text-luxury-100'
-            }`}
-          >
-            {t('cart.tabs.invoices')}
-          </button>
-        </div>
       </div>
 
       {activeTab === 'cart' && (

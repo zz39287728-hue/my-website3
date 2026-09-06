@@ -503,23 +503,8 @@ export const Booking: React.FC<{ setView?: (v: ViewModule) => void, isQuickBooki
       const client = prev.clients[prev.activeClientId];
       const updatedBookings = client.bookings.map(b => b.id === id ? { ...b, status } : b);
       
-      let newBlockedSlots = [...prev.blockedSlots];
-      if (status === 'Confirmed') {
-        const booking = updatedBookings.find(b => b.id === id);
-        if (booking) {
-          newBlockedSlots.push({
-            id: `blk${Date.now()}`,
-            date: booking.date,
-            time: booking.time,
-            durationHours: booking.durationHours,
-            reason: `Meeting with ${client.profile.name}`
-          });
-        }
-      }
-
       return {
         ...prev,
-        blockedSlots: newBlockedSlots,
         clients: {
           ...prev.clients,
           [prev.activeClientId]: {
@@ -969,7 +954,7 @@ export const Booking: React.FC<{ setView?: (v: ViewModule) => void, isQuickBooki
               // Check if ANY existing booking is exactly on this day with ALL_DAY flag
               const allClientBookingsForDay = Object.values(globalState.clients)
                 .flatMap(c => c.bookings || [])
-                .filter(b => b.date === dateString && b.status !== 'Cancelled' && b.status !== 'Rejected' && b.id !== editingBookingId);
+                .filter(b => b.date === dateString && b.status === 'Confirmed' && b.id !== editingBookingId);
               
               const allBlocksForDay = [
                 ...blocks, // These are blockedSlots.filter(b => b.date === dateString)
@@ -1142,7 +1127,7 @@ export const Booking: React.FC<{ setView?: (v: ViewModule) => void, isQuickBooki
                 const allBlocks = [
                   ...blockedSlots,
                   ...allClientBookings
-                    .filter(b => b.status !== 'Cancelled' && b.status !== 'Rejected' && b.id !== editingBookingId) // Ignore cancelled/rejected and the one being edited
+                    .filter(b => b.status === 'Confirmed' && b.id !== editingBookingId) // Only block for Confirmed bookings (ignore pending, cancelled, etc.)
                     .map(b => ({
                       date: b.date,
                       time: b.time,
