@@ -336,6 +336,7 @@ export const INITIAL_STATE: GlobalState = {
   architectProfile: INITIAL_ARCHITECT_PROFILE,
   activeClientId: 'client1',
   blockedSlots: INITIAL_BLOCKED_SLOTS,
+  openedDays: [],
   companyFinances: {
     expenses: [
       { id: 'exp1', title: 'Office Rent', amount: 1500, date: '2026-09-01', category: 'Operations' },

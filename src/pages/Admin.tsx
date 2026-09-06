@@ -574,6 +574,13 @@ export const AdminCalendar: React.FC = () => {
     }));
   };
 
+  const handleOpenNative = (date: string) => {
+    setGlobalState(prev => ({
+      ...prev,
+      openedDays: [...(prev.openedDays || []), date]
+    }));
+  };
+
   const prevMonth = () => {
     setCurrentMonth(prev => {
       const d = new Date(prev);
@@ -615,23 +622,28 @@ export const AdminCalendar: React.FC = () => {
               </div>
             </div>
             
-            <div className="grid grid-cols-7 gap-2 text-center mb-2">
-              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => <div key={d} className="text-xs font-bold text-luxury-500">{d}</div>)}
+            <div className="grid grid-cols-5 gap-2 text-center mb-2">
+              {['Su', 'Mo', 'Tu', 'We', 'Th'].map(d => <div key={d} className="text-xs font-bold text-luxury-500">{d}</div>)}
             </div>
-            <div className="grid grid-cols-7 gap-2">
-              {Array.from({ length: startDayOfWeek }).map((_, i) => (
-                <div key={`empty-${i}`} className="aspect-square"></div>
+            <div className="grid grid-cols-5 gap-2">
+              {Array.from({ length: startDayOfWeek > 4 ? 0 : startDayOfWeek }).map((_, i) => (
+                <div key={`empty-${i}`} className="h-20 lg:h-24"></div>
               ))}
               
               {Array.from({ length: daysInMonth }).map((_, i) => {
                 const day = i + 1;
                 const cellDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                const isNativeWeekend = cellDate.getDay() === 5 || cellDate.getDay() === 6;
+                if (isNativeWeekend) return null;
+                
                 const yyyy = cellDate.getFullYear();
                 const mm = String(cellDate.getMonth() + 1).padStart(2, '0');
                 const dd = String(cellDate.getDate()).padStart(2, '0');
                 const dateString = `${yyyy}-${mm}-${dd}`;
                 
                 const isSelected = selectedDate === dateString;
+                const isOpened = (globalState.openedDays || []).includes(dateString);
+
                 const blocks = [
                   ...blockedSlots.filter(b => b.date === dateString),
                   ...allBookings.filter(b => b.date === dateString && b.status === 'Confirmed').map(b => ({
@@ -639,9 +651,22 @@ export const AdminCalendar: React.FC = () => {
                     date: b.date,
                     time: b.time,
                     durationHours: b.durationHours,
-                    reason: `Consultation: ${b.type}`
+                    reason: `Consultation: ${b.type}`,
+                    isBooking: true
                   }))
                 ];
+
+                if (isNativeWeekend && !isOpened) {
+                  blocks.push({
+                    id: `native-${dateString}`,
+                    date: dateString,
+                    time: 'ALL_DAY',
+                    reason: isAr ? 'إجازة نهاية الأسبوع (تلقائي)' : 'Weekend (System Default)',
+                    durationHours: 24,
+                    isNative: true
+                  } as any);
+                }
+
                 const isFullyBlocked = blocks.some(b => b.time === 'ALL_DAY');
                 const dayBookings = allBookings.filter(b => b.date === dateString);
                 
@@ -649,7 +674,7 @@ export const AdminCalendar: React.FC = () => {
                   <button 
                     key={day}
                     onClick={() => setSelectedDate(dateString)}
-                    className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm transition-all relative ${
+                    className={`h-20 lg:h-24 rounded-lg flex flex-col items-center justify-center text-sm transition-all relative ${
                       isSelected ? 'bg-gradient-to-br from-gold-600 to-gold-400 dark:from-gold-400 dark:to-gold-600 text-white dark:text-luxury-950 font-bold shadow-[0_0_10px_rgba(166,136,104,0.5)] border-none' : 
                       isFullyBlocked ? 'bg-red-500/10 border border-red-500/20 text-red-500 opacity-70' :
                       'bg-luxury-50/50 dark:bg-luxury-950/50 border border-luxury-200 dark:border-luxury-800 font-medium text-luxury-700 dark:text-luxury-300 hover:bg-luxury-100 dark:hover:bg-luxury-800 hover:border-luxury-300 dark:hover:border-luxury-600'
@@ -722,19 +747,45 @@ export const AdminCalendar: React.FC = () => {
               ))}
 
               {/* Show Blocked Slots for selected date */}
-              {blockedSlots.filter(b => b.date === selectedDate).map(slot => (
+              {[
+                ...blockedSlots.filter(b => b.date === selectedDate).map(b => ({ ...b, isNative: false })),
+                ...(() => {
+                  if (!selectedDate) return [];
+                  const d = new Date(selectedDate);
+                  const isNativeWeekend = d.getDay() === 5 || d.getDay() === 6;
+                  const isOpened = (globalState.openedDays || []).includes(selectedDate);
+                  if (isNativeWeekend && !isOpened) {
+                    return [{
+                      id: `native-${selectedDate}`,
+                      date: selectedDate,
+                      time: 'ALL_DAY',
+                      reason: isAr ? 'إجازة نهاية الأسبوع (تلقائي)' : 'Weekend (System Default)',
+                      isNative: true
+                    } as any];
+                  }
+                  return [];
+                })()
+              ].map(slot => (
                 <div key={slot.id} className="p-4 bg-red-500/5 border border-red-500/20 rounded-lg flex justify-between items-center">
                   <div>
                     <h4 className="font-bold text-red-600 dark:text-red-400">{slot.time === 'ALL_DAY' ? 'All Day Blocked' : `Blocked: ${slot.time}`}</h4>
                     <p className="text-sm font-medium text-luxury-600 dark:text-luxury-400">{slot.reason}</p>
                   </div>
-                  <button onClick={() => handleRemoveBlock(slot.id)} className="text-red-500 hover:text-red-700 transition-colors p-2">
-                    <Trash2 size={16} />
-                  </button>
+                  {slot.isNative ? (
+                    <button onClick={() => handleOpenNative(slot.date)} className="text-green-600 dark:text-green-400 hover:bg-green-500/10 transition-colors p-2 text-xs font-bold bg-green-500/5 rounded-lg border border-green-500/20">
+                      {isAr ? 'فتح اليوم' : 'Open Day'}
+                    </button>
+                  ) : (
+                    <button onClick={() => handleRemoveBlock(slot.id)} className="text-red-500 hover:text-red-700 transition-colors p-2">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
               ))}
 
-              {allBookings.filter(b => b.date === selectedDate).length === 0 && blockedSlots.filter(b => b.date === selectedDate).length === 0 && (
+              {allBookings.filter(b => b.date === selectedDate).length === 0 && blockedSlots.filter(b => b.date === selectedDate).length === 0 && (!(
+                new Date(selectedDate!).getDay() === 5 || new Date(selectedDate!).getDay() === 6
+              ) || (globalState.openedDays || []).includes(selectedDate!)) && (
                 <p className="text-sm text-luxury-500 text-center py-4">No events scheduled for this day.</p>
               )}
             </div>
@@ -790,7 +841,7 @@ export const AdminDashboard: React.FC<{ setView: (v: ViewModule) => void }> = ({
     // 2. Send Message to Client
     const newMessage = {
       id: `msg${Date.now()}`,
-      sender: 'ARCHITECT' as const,
+      sender: 'ARCHITECT' as any,
       text: `I have uploaded the deliverables for ${t(`stage.${milestoneId}`)}. Please review.`,
       attachment: { name: data.name, size: 'Link', url: data.url },
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })

@@ -18,6 +18,7 @@ import { Chat, Booking, Support } from './pages/Communication';
 import { AdminDirectory, AdminArchive, AdminDashboard, AdminFinance, AdminContracts, AdminChat, AdminProfile, AdminTasks, AdminCalendar } from './pages/Admin';
 import { SupportStore } from "./pages/SupportStore";
 import { SupportDashboard, SupportTickets, SupportFinance, SupportKnowledgeBase, SupportLogs, SupportClientDashboard } from './pages/Support';
+import { DesignPreferences } from './pages/DesignPreferences';
 
 export type Theme = 'light' | 'dark';
 export type Language = 'en' | 'ar';
@@ -77,10 +78,7 @@ const App: React.FC = () => {
   const handleRoleSelect = (selectedRole: Role) => {
     setRole(selectedRole);
     if (selectedRole === 'CLIENT') {
-      const activeClient = globalState.clients[globalState.activeClientId];
-      if (!activeClient?.profile?.onboardingCompleted) {
-        setShowOnboarding(true);
-      }
+      setShowOnboarding(true);
       setCurrentView(ViewModule.DASHBOARD);
     } else if (selectedRole === 'ARCHITECT') {
       setCurrentView(ViewModule.ADMIN_DIRECTORY);
@@ -141,7 +139,8 @@ const App: React.FC = () => {
       case ViewModule.INVOICE: return <Invoice setView={setCurrentView} defaultTab="invoices" />;
       case ViewModule.CART: return <Invoice setView={setCurrentView} defaultTab="cart" />;
       case ViewModule.SUPPORT: return <Support />;
-      case ViewModule.PROFILE: return <Profile />;
+      case ViewModule.PROFILE: return <Profile setView={setCurrentView} />;
+      case ViewModule.DESIGN_PREFERENCES: return <DesignPreferences setView={setCurrentView} />;
       default: return <Dashboard setView={setCurrentView} />;
     }
   };

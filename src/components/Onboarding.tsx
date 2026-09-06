@@ -20,12 +20,14 @@ const AppleIcon = () => (
 );
 
 
-export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => void }> = ({ onComplete }) => {
+export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => void, initialStep?: number }> = ({ onComplete, initialStep }) => {
   const { lang, setLang, theme, setTheme, setGlobalState, globalState } = useAppContext();
-  const [step, setStep] = useState(0);
+  const activeClient = globalState.clients[globalState.activeClientId];
+  
+  const [step, setStep] = useState(initialStep !== undefined ? initialStep : (activeClient?.profile?.onboardingCompleted ? 2 : 0));
   
   // Start with default or empty preferences
-  const [preferences, setPreferences] = useState<Record<string, any>>({});
+  const [preferences, setPreferences] = useState<Record<string, any>>(activeClient?.profile?.designPreferences || {});
   const [loginInput, setLoginInput] = useState('');
   const [showOTP, setShowOTP] = useState(false);
   const [otpCode, setOtpCode] = useState('');
@@ -144,6 +146,8 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
   const handleBack = () => {
     if (step === 1 && showOTP) {
       setShowOTP(false);
+    } else if (step === 2 && activeClient?.profile?.onboardingCompleted) {
+      onComplete(false); // Close modal when returning from first question if already logged in
     } else if (step > 0) {
       setStep(step - 1);
     }
@@ -174,13 +178,13 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
             profile: {
               ...client.profile,
               onboardingCompleted: true,
-              designPreferences: preferences
+              designPreferences: Object.keys(preferences).length > 0 ? preferences : client.profile.designPreferences
             }
           }
         }
       };
     });
-    onComplete(true);
+    onComplete(false); // Should not pass true here, it meant isGuest=true
   };
 
 
@@ -283,11 +287,13 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
           </button>
         )}
 
-        <div className="flex justify-center mb-8">
-          {Array.from({ length: questions.length + 2 }).map((_, i) => (
-            <div key={i} className={`w-2 h-2 rounded-full mx-1 transition-all duration-500 ${i === step ? 'bg-[#EFE3D1]' : 'bg-luxury-300 dark:bg-luxury-700'}`} />
-          ))}
-        </div>
+        {step > 1 && (
+          <div className="flex justify-center mb-8">
+            {Array.from({ length: questions.length }).map((_, i) => (
+              <div key={i} className={`w-2 h-2 rounded-full mx-1 transition-all duration-500 ${i === step - 2 ? 'bg-[#EFE3D1]' : 'bg-luxury-300 dark:bg-luxury-700'}`} />
+            ))}
+          </div>
+        )}
 
         <AnimatePresence mode="wait">
           {step === 0 && (
@@ -450,7 +456,14 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
 
                   <div className="flex justify-center mt-12">
                     <button 
-                      onClick={() => setStep(2)}
+                      onClick={() => {
+                        const client = globalState.clients[globalState.activeClientId];
+                        if (client?.profile?.onboardingCompleted) {
+                          handleComplete();
+                        } else {
+                          setStep(2);
+                        }
+                      }}
                       disabled={otpCode.length < 4}
                       className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
                         otpCode.length < 4
@@ -729,14 +742,16 @@ export const OnboardingWizard: React.FC<{ onComplete: (isGuest?: boolean) => voi
                 </button>
               </div>
 
-              <div className="flex justify-center mt-6">
-                <button 
-                  onClick={() => setShowSkipConfirm(true)}
-                  className="text-luxury-500 hover:text-luxury-800 dark:text-luxury-400 dark:hover:text-luxury-200 text-sm font-bold underline decoration-luxury-300 dark:decoration-luxury-700 underline-offset-4 transition-colors"
-                >
-                  {isAr ? 'تخطي الاستبيان والدخول مباشرة' : 'Skip quiz and enter directly'}
-                </button>
-              </div>
+              {!activeClient?.profile?.onboardingCompleted && (
+                <div className="flex justify-center mt-6">
+                  <button 
+                    onClick={() => setShowSkipConfirm(true)}
+                    className="text-luxury-500 hover:text-luxury-800 dark:text-luxury-400 dark:hover:text-luxury-200 text-sm font-bold underline decoration-luxury-300 dark:decoration-luxury-700 underline-offset-4 transition-colors"
+                  >
+                    {isAr ? 'تخطي الاستبيان والدخول مباشرة' : 'Skip quiz and enter directly'}
+                  </button>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

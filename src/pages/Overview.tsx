@@ -138,7 +138,7 @@ export const Dashboard: React.FC<{ setView: (v: ViewModule) => void }> = ({ setV
   );
 };
 
-export const Profile: React.FC = () => {
+export const Profile: React.FC<{ setView: (v: ViewModule) => void }> = ({ setView }) => {
   const { theme, setTheme, lang, setLang, t, globalState, setGlobalState, setRole, setShowOnboarding } = useAppContext();
   const isRTL = lang === 'ar';
   const isDark = theme === 'dark';
@@ -347,17 +347,20 @@ export const Profile: React.FC = () => {
               </div>
               <Button 
                 variant="secondary"
-                onClick={() => setShowOnboarding(true)} 
+                onClick={() => setView(ViewModule.DESIGN_PREFERENCES)} 
                 className="px-4 py-2 text-sm whitespace-nowrap"
               >
-                <Edit2 size={16} /> {isRTL ? 'تعديل التفضيلات' : 'Edit Preferences'}
+                <Edit2 size={16} /> {isRTL ? 'عرض التفضيلات' : 'View Preferences'}
               </Button>
             </motion.div>
           )}
 
           <div className="pt-6 border-t border-luxury-200 dark:border-luxury-800">
             <Button 
-              onClick={() => setRole('GUEST')} 
+              onClick={() => {
+                setRole('GUEST');
+                setGlobalState(prev => ({ ...prev, activeClientId: 'client1' }));
+              }} 
               className="w-full text-white dark:text-white hover:opacity-90 border-none shadow-none"
             >
               <LogOut size={18} /> {t('app.logout')}

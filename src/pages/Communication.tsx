@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, Button } from '../components/UI';
 import { useAppContext } from '../App';
 import { ViewModule } from '../types';
-import { Send, Paperclip, Calendar as CalendarIcon, Clock, ChevronDown, ChevronRight, MapPin, Video, Building, X, Download, Check, ShoppingBag, ArrowRight, DollarSign, CheckCircle2, ShoppingCart, Phone, Sparkles, Paintbrush, Pencil } from 'lucide-react';
+import { Headphones, Send, Paperclip, Calendar as CalendarIcon, Clock, ChevronDown, ChevronRight, MapPin, Video, Building, X, Download, Check, ShoppingBag, ArrowRight, DollarSign, CheckCircle2, ShoppingCart, Phone, Sparkles, Paintbrush, Pencil , CheckCheck, Mic, MoreHorizontal, Languages} from 'lucide-react';
 import { PinterestReferences } from '../components/PinterestReferences';
 
 const compressImage = async (file: File, maxSizeMB: number): Promise<File> => {
@@ -63,7 +63,23 @@ export const Chat: React.FC = () => {
   const { t, globalState, setGlobalState } = useAppContext();
   const activeClient = globalState.clients[globalState.activeClientId];
   const chatHistory = activeClient.chatHistory;
+  const [activeThread, setActiveThread] = useState<'ARCHITECT' | 'SUPPORT'>('ARCHITECT');
   const [input, setInput] = useState('');
+  const [translatedMessages, setTranslatedMessages] = useState<Record<string, boolean>>({});
+  const [translatedText, setTranslatedText] = useState<Record<string, string>>({});
+  const [detectedLang, setDetectedLang] = useState<Record<string, string>>({});
+  const [isTranslating, setIsTranslating] = useState<Record<string, boolean>>({});
+  const [isTyping, setIsTyping] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+    }
+  }, [input]);
+  const filteredChatHistory = chatHistory.filter(msg => { const recipient = msg.recipient || 'ARCHITECT'; return msg.sender === 'CLIENT' ? recipient === activeThread : msg.sender === activeThread; });
   const [pendingAttachments, setPendingAttachments] = useState<Array<{name: string, size: string, url: string, type: string}>>([]);
   const [attachmentError, setAttachmentError] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -74,6 +90,50 @@ export const Chat: React.FC = () => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  const handleTranslate = async (msgId: string, text: string) => {
+    if (translatedMessages[msgId]) {
+      setTranslatedMessages(prev => ({ ...prev, [msgId]: false }));
+      return;
+    }
+
+    if (translatedText[msgId]) {
+      setTranslatedMessages(prev => ({ ...prev, [msgId]: true }));
+      return;
+    }
+
+    setIsTranslating(prev => ({ ...prev, [msgId]: true }));
+    try {
+      const targetLang = isAr ? 'ar' : 'en';
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, targetLang })
+      });
+      const data = await res.json();
+      if (data.translatedText) {
+        setTranslatedText(prev => ({ ...prev, [msgId]: data.translatedText }));
+        if (data.detectedLanguage) {
+           setDetectedLang(prev => ({ ...prev, [msgId]: data.detectedLanguage }));
+        }
+        setTranslatedMessages(prev => ({ ...prev, [msgId]: true }));
+      }
+    } catch (error) {
+      console.error('Translation failed:', error);
+    } finally {
+      setIsTranslating(prev => ({ ...prev, [msgId]: false }));
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedImage) {
+        setSelectedImage(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedImage]);
 
   useEffect(() => {
     scrollToBottom();
@@ -131,15 +191,69 @@ export const Chat: React.FC = () => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  
+  // Mark incoming messages as read when viewing the thread
+  useEffect(() => {
+    const unreadIncoming = chatHistory.filter(msg => msg.sender === activeThread && msg.status !== 'READ');
+    if (unreadIncoming.length > 0) {
+      setGlobalState(prev => {
+        const client = prev.clients[prev.activeClientId];
+        const updatedHistory = client.chatHistory.map(msg => 
+          (msg.sender === activeThread && msg.status !== 'READ') ? { ...msg, status: 'READ' as const } : msg
+        );
+        return {
+          ...prev,
+          clients: {
+            ...prev.clients,
+            [prev.activeClientId]: {
+              ...client,
+              chatHistory: updatedHistory
+            }
+          }
+        };
+      });
+    }
+  }, [chatHistory, activeThread, setGlobalState, globalState.activeClientId]);
+
+  // Simulate read receipts
+  useEffect(() => {
+    const unreadMessages = chatHistory.filter(msg => msg.sender === 'CLIENT' && msg.status === 'SENT');
+    if (unreadMessages.length > 0) {
+      const timer = setTimeout(() => {
+        setGlobalState(prev => {
+          const client = prev.clients[prev.activeClientId];
+          const updatedHistory = client.chatHistory.map(msg => 
+            (msg.sender === 'CLIENT' && msg.status === 'SENT') ? { ...msg, status: 'READ' as const } : msg
+          );
+          return {
+            ...prev,
+            clients: {
+              ...prev.clients,
+              [prev.activeClientId]: {
+                ...client,
+                chatHistory: updatedHistory
+              }
+            }
+          };
+        });
+      }, 1500); // 1.5 seconds to read
+      
+      return () => clearTimeout(timer);
+    }
+  }, [chatHistory, globalState.activeClientId, setGlobalState]);
+
+
   const handleSend = () => {
     if (!input.trim() && pendingAttachments.length === 0) return;
     
     const newMessage = {
       id: `msg${Date.now()}`,
       sender: 'CLIENT' as const,
+      recipient: activeThread,
       text: input,
       attachments: pendingAttachments.length > 0 ? pendingAttachments : undefined,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: 'SENT' as const
     };
 
     setGlobalState(prev => ({
@@ -154,6 +268,35 @@ export const Chat: React.FC = () => {
     }));
     setInput('');
     setPendingAttachments([]);
+    
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+
+    // Simulate typing
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      const replyMessage = {
+        id: `msg${Date.now() + 1}`,
+        sender: activeThread,
+        recipient: 'CLIENT',
+        text: isAr ? (activeThread === 'ARCHITECT' ? 'شكراً لك، سأقوم بمراجعة ذلك.' : 'سنقوم بمتابعة طلبك فوراً.') : (activeThread === 'ARCHITECT' ? 'Thank you, I will review this.' : 'We will follow up on your request immediately.'),
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: 'SENT' as const
+      };
+      setGlobalState(prev => ({
+        ...prev,
+        clients: {
+          ...prev.clients,
+          [prev.activeClientId]: {
+            ...prev.clients[prev.activeClientId],
+            chatHistory: [...prev.clients[prev.activeClientId].chatHistory, replyMessage]
+          }
+        }
+      }));
+    }, 2500);
   };
 
   const removePendingAttachment = (index: number) => {
@@ -186,103 +329,186 @@ export const Chat: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto h-[calc(100vh-120px)] flex flex-col pb-4">
+    <div className="max-w-4xl mx-auto h-[calc(100vh-100px)] flex flex-col pb-4 text-luxury-100">
       {/* Lightbox / Modal for Image Preview */}
-      {selectedImage && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
-          <div className="relative max-w-5xl w-full flex flex-col items-center">
-            <button 
-              onClick={() => setSelectedImage(null)}
-              className="absolute -top-12 right-0 p-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-all"
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            onClick={() => setSelectedImage(null)}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 cursor-pointer"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }} 
+              animate={{ scale: 1, opacity: 1 }} 
+              exit={{ scale: 0.9, opacity: 0 }} 
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-5xl w-full flex flex-col items-center cursor-default"
             >
-              <X size={24} />
-            </button>
-            <img src={selectedImage} alt="Preview" className="max-h-[80vh] w-auto max-w-full rounded-xl shadow-2xl object-contain" />
-            <a 
-              href={selectedImage} 
-              download="attachment"
-              className="mt-6 flex items-center gap-2 bg-white/10 text-white px-6 py-2.5 rounded-full hover:bg-white/20 transition-colors shadow-lg backdrop-blur-md"
-            >
-              <Download size={18} />
-              <span className="font-bold text-sm">{isAr ? 'تحميل الصورة' : 'Download Image'}</span>
-            </a>
-          </div>
-        </div>
-      )}
+              <button 
+                onClick={() => setSelectedImage(null)}
+                className="absolute -top-12 right-0 p-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-all"
+              >
+                <X size={24} />
+              </button>
+              <img src={selectedImage} alt="Preview" className="max-h-[80vh] w-auto max-w-full rounded-xl shadow-2xl object-contain" />
+              <a 
+                href={selectedImage} 
+                download="attachment"
+                onClick={(e) => e.stopPropagation()}
+                className="mt-6 flex items-center gap-2 bg-white/10 text-white px-6 py-2.5 rounded-full hover:bg-white/20 transition-colors shadow-lg backdrop-blur-md"
+              >
+                <Download size={18} />
+                <span className="font-bold text-sm">{isAr ? 'تحميل الصورة' : 'Download Image'}</span>
+              </a>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <Card className="flex-1 flex flex-col p-0 overflow-hidden">
-        <div className="p-4 border-b border-luxury-200 dark:border-luxury-800 bg-white/80 dark:bg-luxury-950/80 backdrop-blur-md flex items-center gap-4 transition-colors duration-500">
-          <img src="https://picsum.photos/id/1027/100/100" alt="Designer" className="w-12 h-12 rounded-full object-cover border border-gold-500 shadow-[0_0_10px_rgba(166,136,104,0.3)]" />
-          <div>
-            <h3 className="font-serif text-lg font-bold bg-gradient-to-r from-luxury-900 to-luxury-600 dark:from-luxury-50 dark:to-luxury-300 text-transparent bg-clip-text">Arch. Zainab Al-Zaki</h3>
-            <p className="text-xs font-bold text-green-600 dark:text-green-500 flex items-center gap-1"><span className="w-2 h-2 bg-green-500 rounded-full inline-block shadow-[0_0_5px_rgba(34,197,94,0.5)]"></span> {t('chat.online')}</p>
-          </div>
+      {/* Main Chat Container - Telegram Dark Style */}
+      <div className="flex-1 flex flex-col p-0 overflow-hidden rounded-2xl bg-[#1c1a17] border border-white/5 shadow-2xl">
+        
+        {/* Top Bar - Contact Switcher */}
+        <div className="p-4 border-b border-white/5 bg-[#1c1a17] flex items-center gap-4">
+          <button 
+            onClick={() => setActiveThread('SUPPORT')}
+            className={`flex-1 flex items-center justify-center sm:justify-start gap-4 p-3 rounded-2xl border transition-all ${activeThread === 'SUPPORT' ? 'bg-[#2c2824] border-gold-600/30' : 'hover:bg-white/5 border-transparent'}`}
+          >
+            <div className="w-12 h-12 rounded-full bg-[#1c1a17] flex items-center justify-center border border-white/10 shrink-0">
+              <Headphones size={24} className="text-luxury-400" />
+            </div>
+            <div className="hidden sm:block text-left rtl:text-right overflow-hidden">
+              <h3 className="font-bold text-sm text-luxury-50 truncate">{isAr ? 'فريق الدعم الفني' : 'Support Team'}</h3>
+              <p className="text-[11px] text-luxury-400">{isAr ? 'التبديل إلى لوحة الدعم' : 'Switch to Support'}</p>
+            </div>
+            {chatHistory.filter(m => m.sender === 'SUPPORT' && m.status !== 'READ').length > 0 && (
+              <span className="ml-auto flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-500 text-neutral-900 text-[10px] font-bold shadow-sm">
+                {chatHistory.filter(m => m.sender === 'SUPPORT' && m.status !== 'READ').length}
+              </span>
+            )}
+          </button>
+          
+          <button 
+            onClick={() => setActiveThread('ARCHITECT')}
+            className={`flex-1 flex items-center justify-center sm:justify-start gap-4 p-3 rounded-2xl border transition-all ${activeThread === 'ARCHITECT' ? 'bg-[#2c2824] border-gold-600/30' : 'hover:bg-white/5 border-transparent'}`}
+          >
+            <img src={globalState.architectProfile?.avatar || "https://picsum.photos/id/1027/100/100"} alt="Designer" className="w-12 h-12 rounded-full object-cover border border-white/10 shrink-0" />
+            <div className="hidden sm:block text-left rtl:text-right overflow-hidden">
+              <h3 className="font-bold text-sm text-luxury-50 truncate">{globalState.architectProfile?.name || 'ARCH. ZAINAB AL-ZAKI'}</h3>
+              <p className="text-[11px] text-luxury-400">{isAr ? 'التبديل إلى لوحة المهندس' : 'Switch to Architect'}</p>
+            </div>
+            {chatHistory.filter(m => m.sender === 'ARCHITECT' && m.status !== 'READ').length > 0 && (
+              <span className="ml-auto flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-500 text-neutral-900 text-[10px] font-bold shadow-sm">
+                {chatHistory.filter(m => m.sender === 'ARCHITECT' && m.status !== 'READ').length}
+              </span>
+            )}
+          </button>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 no-scrollbar bg-luxury-50/50 dark:bg-luxury-950/30 transition-colors duration-500">
-          {chatHistory.map((msg) => {
+        {/* Chat Messages Area */}
+        <div className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 no-scrollbar">
+          
+          {/* Date Badge */}
+          <div className="flex justify-center mb-6">
+            <div className="bg-neutral-800/60 text-white/70 text-[11px] font-bold px-3 py-1 rounded-full backdrop-blur-sm shadow-sm border border-white/5">
+              {isAr ? 'اليوم' : 'Today'}
+            </div>
+          </div>
+
+          {filteredChatHistory.map((msg) => {
             const attachmentsToRender = msg.attachments || (msg.attachment ? [msg.attachment] : []);
             const isClient = msg.sender === 'CLIENT';
             
+            // Refined Bubble Classes
             const bubbleClass = isClient
-              ? 'bg-gradient-to-br from-gold-600 to-gold-400 dark:from-gold-500 dark:to-gold-600 text-white dark:text-luxury-950 rounded-2xl rounded-tr-sm shadow-sm font-medium'
-              : 'bg-white dark:bg-luxury-800 border border-luxury-200 dark:border-luxury-700 text-luxury-900 dark:text-luxury-100 rounded-2xl rounded-tl-sm shadow-sm font-medium';
+              ? 'bg-amber-900/40 border border-amber-500/30 text-white rounded-2xl rounded-br-sm'
+              : 'bg-neutral-800/80 border border-neutral-700/50 text-white rounded-2xl rounded-bl-sm';
 
             return (
-              <div key={msg.id} className={`flex flex-col ${isClient ? 'items-end' : 'items-start'}`}>
-                {msg.sender === 'SUPPORT' && (
-                  <span className="text-[10px] text-luxury-500 font-bold mb-1 ml-1">{t('role.support') || 'Support Team'}</span>
-                )}
+              <div key={msg.id} className={`flex flex-col w-full ${isClient ? 'items-end' : 'items-start'}`}>
+                
                 {/* Text Bubble */}
                 {msg.text && (
-                  <div className={`relative max-w-[85%] sm:max-w-[70%] px-3 pt-2 pb-1.5 ${attachmentsToRender.length > 0 || msg.actionItem ? 'mb-1' : ''} ${bubbleClass}`}>
-                    <p className="text-[15px] font-medium leading-snug whitespace-pre-wrap">{msg.text}</p>
+                  <div className={`relative max-w-[85%] sm:max-w-[480px] px-3.5 pt-2 pb-1.5 shadow-sm backdrop-blur-md ${attachmentsToRender.length > 0 || msg.actionItem ? 'mb-1' : ''} ${bubbleClass}`}>
+                    <div className="text-[15px] font-medium leading-relaxed whitespace-pre-wrap break-words">
+                      {translatedMessages[msg.id] && translatedText[msg.id]
+                        ? translatedText[msg.id]
+                        : msg.text}
+                      {/* Invisible spacer to prevent text from overlapping the absolute timestamp */}
+                      {attachmentsToRender.length === 0 && !msg.actionItem && (
+                        <span className="inline-block w-14 h-4 ml-2"></span>
+                      )}
+                    </div>
+                    
+                    {/* Translate Button */}
+                    <button 
+                      onClick={() => handleTranslate(msg.id, msg.text)}
+                      disabled={isTranslating[msg.id]}
+                      className={`mt-1 flex items-center gap-1.5 text-[11px] font-medium hover:opacity-80 transition-opacity disabled:opacity-50 ${isClient ? 'text-amber-200/80' : 'text-neutral-400/80'}`}
+                    >
+                      <Languages size={12} className={isTranslating[msg.id] ? "animate-pulse" : ""} />
+                      {isTranslating[msg.id] 
+                        ? (isAr ? 'جاري الترجمة...' : 'Translating...')
+                        : translatedMessages[msg.id] 
+                          ? (isAr ? 'عرض النص الأصلي' : 'Show Original')
+                          : (isAr ? 'ترجمة' : 'Translate')}
+                    </button>
+
                     {attachmentsToRender.length === 0 && !msg.actionItem && (
-                      <span className={`float-right text-[10px] ml-4 mt-1 opacity-70`}>{msg.timestamp}</span>
+                      <div className={`absolute bottom-1.5 ltr:right-2.5 rtl:left-2.5 flex items-center gap-1 text-[11px] font-sans font-medium ${isClient ? 'text-amber-200/70' : 'text-neutral-400'}`}>
+                        {msg.timestamp}
+                        {isClient && (msg.status === 'SENT' ? <Check size={13} /> : <CheckCheck size={13} />)}
+                      </div>
                     )}
-                    <div className="clear-both"></div>
                   </div>
                 )}
                 
                 {/* Action Item Bubble */}
                 {msg.actionItem && (
-                  <div className={`relative max-w-[85%] sm:max-w-[70%] p-4 mb-1 border shadow-sm rounded-2xl ${isClient ? 'rounded-tr-sm bg-luxury-100 dark:bg-luxury-900 border-luxury-200 dark:border-luxury-700 text-luxury-900 dark:text-luxury-100' : 'rounded-tl-sm bg-white dark:bg-luxury-800 border-luxury-200 dark:border-luxury-700 text-luxury-900 dark:text-luxury-100'}`}>
+                  <div className={`relative max-w-[85%] sm:max-w-[480px] p-5 mb-1 shadow-sm backdrop-blur-md ${isClient ? 'bg-amber-900/40 border border-amber-500/30 text-white rounded-2xl rounded-br-sm' : 'bg-neutral-800/80 border border-neutral-700/50 text-white rounded-2xl rounded-bl-sm'}`}>
                     <div className="flex flex-col items-center text-center">
-                      <div className="p-2 bg-gold-500/10 text-gold-600 rounded-full mb-2">
+                      <div className={`p-3 rounded-full mb-3 ${isClient ? 'bg-amber-500/20 text-amber-400' : 'bg-neutral-700/50 text-amber-500'}`}>
                         {msg.actionItem.type === 'PAYMENT' && <DollarSign size={24} />}
                         {msg.actionItem.type === 'APPROVAL' && <CheckCircle2 size={24} />}
                         {msg.actionItem.type === 'MEETING' && <CalendarIcon size={24} />}
                       </div>
                       <h4 className="font-bold text-lg mb-1">{msg.actionItem.title}</h4>
                       {msg.actionItem.type === 'PAYMENT' && (
-                        <p className="text-xl font-bold font-serif text-gold-600 mb-3">{msg.actionItem.amount} BHD</p>
+                        <p className="text-xl font-bold font-serif mb-4 text-amber-400">{msg.actionItem.amount} BHD</p>
                       )}
                       
                       {msg.actionItem.completed ? (
-                        <div className="w-full mt-3 py-2 px-4 bg-green-500/10 text-green-600 border border-green-500/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2">
+                        <div className="w-full mt-3 py-2 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                           <CheckCircle2 size={16} />
                           {t('status.completed') || 'تم الإنجاز'}
                         </div>
                       ) : (
                         <button 
                           onClick={() => handleActionClick(msg.id)}
-                          className="w-full mt-3 py-2 px-4 bg-gradient-to-r from-gold-700 to-gold-600 text-white rounded-lg text-sm font-bold shadow-md hover:from-gold-600 hover:to-gold-500 transition-all hover:scale-105 active:scale-95"
+                          className="w-full mt-3 py-2.5 px-4 rounded-xl text-sm font-bold shadow-md transition-all hover:scale-105 active:scale-95 bg-amber-500 hover:bg-amber-400 text-neutral-950"
                         >
-                          {msg.actionItem.type === 'PAYMENT' ? 'دفع الآن (Pay Now)' : 
-                           msg.actionItem.type === 'APPROVAL' ? 'اعتماد (Approve)' : 
-                           'حجز الموعد (Book)'}
+                          {msg.actionItem.type === 'PAYMENT' ? (isAr ? 'دفع الآن' : 'Pay Now') :
+                           msg.actionItem.type === 'APPROVAL' ? (isAr ? 'اعتماد' : 'Approve') :
+                           (isAr ? 'حجز الموعد' : 'Book')}
                         </button>
                       )}
                     </div>
                     {attachmentsToRender.length === 0 && (
-                      <span className={`block text-right text-[10px] mt-2 opacity-70`}>{msg.timestamp}</span>
+                      <div className={`flex justify-end items-center gap-1 text-[11px] mt-3 font-sans font-medium ${isClient ? 'text-amber-200/70' : 'text-neutral-400'}`}>
+                        {msg.timestamp}
+                        {isClient && (msg.status === 'SENT' ? <Check size={13} /> : <CheckCheck size={13} />)}
+                      </div>
                     )}
                   </div>
                 )}
                 
                 {/* Attachments */}
                 {attachmentsToRender.length > 0 && (
-                  <div className={`flex flex-col gap-1 max-w-[85%] sm:max-w-[70%] w-full ${isClient ? 'items-end' : 'items-start'}`}>
+                  <div className={`flex flex-col gap-1 max-w-[85%] sm:max-w-[480px] w-full ${isClient ? 'items-end' : 'items-start'}`}>
                     {attachmentsToRender.map((att, idx) => {
                       const isLast = idx === attachmentsToRender.length - 1;
                       
@@ -291,38 +517,41 @@ export const Chat: React.FC = () => {
                           <div key={idx} className={`relative group ${isClient ? 'items-end' : 'items-start'}`}>
                             <button 
                               type="button"
-                              onClick={() => setSelectedImage(att.url!)}
+                              onClick={() => setSelectedImage(att.url)}
                               className="text-left focus:outline-none"
                             >
                               <img 
                                 src={att.url} 
                                 alt={att.name} 
-                                className={`w-48 sm:w-60 h-auto max-h-64 object-cover rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-zoom-in ${isClient ? 'rounded-tr-sm' : 'rounded-tl-sm'} border border-black/10 dark:border-white/10`} 
+                                className={`w-56 sm:w-72 h-auto max-h-72 object-cover shadow-sm hover:opacity-90 transition-opacity cursor-zoom-in ${isClient ? 'rounded-2xl rounded-br-sm' : 'rounded-2xl rounded-bl-sm'} border border-white/10`}
                               />
                             </button>
                             {isLast && (
-                              <div className="absolute bottom-1 right-2 px-1.5 py-0.5 rounded-full bg-black/40 backdrop-blur-sm text-[10px] text-white">
+                              <div className="absolute bottom-2 ltr:right-2 rtl:left-2 flex items-center gap-1 px-2 py-1 rounded-full bg-black/50 backdrop-blur-md text-[11px] font-sans font-medium text-white shadow-sm">
                                 {msg.timestamp}
+                                {isClient && (msg.status === 'SENT' ? <Check size={13} className="text-white" /> : <CheckCheck size={13} className="text-white" />)}
                               </div>
                             )}
                           </div>
                         );
                       } else {
                         return (
-                          <div key={idx} className={`relative px-3 pt-2 pb-1.5 w-64 ${bubbleClass}`}>
+                          <div key={idx} className={`relative px-3.5 py-3 w-64 sm:w-72 shadow-sm backdrop-blur-md ${bubbleClass}`}>
                             <a href={att.url || '#'} download={att.name} className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isClient ? 'bg-white/20 text-white' : 'bg-luxury-100 dark:bg-luxury-900 text-gold-600 dark:text-gold-400'}`}>
-                                <Paperclip size={18} />
+                              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-neutral-900/40 text-amber-500">
+                                <Paperclip size={20} />
                               </div>
                               <div className="text-sm overflow-hidden flex-1">
-                                <p className="font-bold truncate text-inherit leading-tight mb-0.5">{att.name}</p>
-                                <p className="text-[11px] font-medium opacity-80 uppercase tracking-wider">{att.size}</p>
+                                <p className="font-bold truncate text-inherit leading-tight mb-1">{att.name}</p>
+                                <p className="text-[11px] font-medium opacity-70 uppercase tracking-wider">{att.size}</p>
                               </div>
                             </a>
                             {isLast && (
-                              <span className="float-right text-[10px] ml-4 mt-1 opacity-70">{msg.timestamp}</span>
+                              <div className={`absolute bottom-1.5 ltr:right-2.5 rtl:left-2.5 flex items-center gap-1 text-[11px] font-sans font-medium ${isClient ? 'text-amber-200/70' : 'text-neutral-400'}`}>
+                                {msg.timestamp}
+                                {isClient && (msg.status === 'SENT' ? <Check size={13} /> : <CheckCheck size={13} />)}
+                              </div>
                             )}
-                            <div className="clear-both"></div>
                           </div>
                         );
                       }
@@ -332,20 +561,49 @@ export const Chat: React.FC = () => {
               </div>
             );
           })}
+          
+          {/* Typing Indicator */}
+          <AnimatePresence>
+            {isTyping && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
+                className="flex flex-col relative items-start w-full origin-bottom-left"
+              >
+                <div className="flex items-end gap-2">
+                  {/* Subtle Profile Icon to match Telegram */}
+                  <div className="w-6 h-6 rounded-full bg-neutral-800 border border-neutral-700/50 flex items-center justify-center shadow-sm shrink-0">
+                    {activeThread === 'SUPPORT' ? <Headphones size={12} className="text-luxury-400" /> : <Paintbrush size={12} className="text-luxury-400" />}
+                  </div>
+                  
+                  {/* Bubble */}
+                  <div className="relative px-3 py-2.5 shadow-sm backdrop-blur-md bg-neutral-800/80 border border-neutral-700/50 text-neutral-400 rounded-2xl rounded-bl-sm flex items-center gap-1">
+                    <motion.div animate={{ opacity: [0.4, 1, 0.4], y: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 1, ease: "easeInOut" }} className="w-1.5 h-1.5 rounded-full bg-amber-500/80"></motion.div>
+                    <motion.div animate={{ opacity: [0.4, 1, 0.4], y: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2, ease: "easeInOut" }} className="w-1.5 h-1.5 rounded-full bg-amber-500/80"></motion.div>
+                    <motion.div animate={{ opacity: [0.4, 1, 0.4], y: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4, ease: "easeInOut" }} className="w-1.5 h-1.5 rounded-full bg-amber-500/80"></motion.div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Errors */}
         {attachmentError && (
-          <div className="px-4 py-2 text-xs text-red-500 font-bold text-center bg-red-50 dark:bg-red-950/20 border-t border-red-100 dark:border-red-900/30">
+          <div className="relative z-10 px-4 py-2 text-xs text-red-400 font-bold text-center bg-red-950/80 border-t border-red-900/50 backdrop-blur-md">
             {attachmentError}
           </div>
         )}
         
+        {/* Pending Attachments */}
         {pendingAttachments.length > 0 && (
-          <div className="px-4 py-3 bg-luxury-50 dark:bg-luxury-900 border-t border-luxury-200 dark:border-luxury-800 flex flex-wrap gap-3 max-h-32 overflow-y-auto">
+          <div className="relative z-10 px-4 py-3 bg-neutral-900/90 backdrop-blur-xl border-t border-white/5 flex flex-wrap gap-3 max-h-32 overflow-y-auto">
             {pendingAttachments.map((att, idx) => (
-              <div key={idx} className="flex items-center gap-2 bg-white dark:bg-luxury-950 border border-luxury-200 dark:border-luxury-700 rounded-lg pr-2 overflow-hidden shadow-sm">
-                <div className="w-10 h-10 bg-luxury-100 dark:bg-luxury-800 flex items-center justify-center text-gold-600 dark:text-gold-400 shrink-0">
+              <div key={idx} className="flex items-center gap-2 bg-neutral-800 border border-white/5 rounded-xl pr-2 overflow-hidden shadow-sm">
+                <div className="w-12 h-12 bg-neutral-900 flex items-center justify-center text-amber-500 shrink-0">
                   {att.type === 'image' ? (
                      <img src={att.url} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
@@ -353,10 +611,10 @@ export const Chat: React.FC = () => {
                   )}
                 </div>
                 <div className="text-xs overflow-hidden max-w-[120px]">
-                  <p className="font-bold text-luxury-900 dark:text-luxury-100 truncate">{att.name}</p>
-                  <p className="font-medium text-luxury-500">{att.size}</p>
+                  <p className="font-bold text-neutral-50 truncate">{att.name}</p>
+                  <p className="font-medium text-neutral-400">{att.size}</p>
                 </div>
-                <button onClick={() => removePendingAttachment(idx)} className="text-luxury-400 hover:text-red-500 transition-colors p-1 ml-1">
+                <button onClick={() => removePendingAttachment(idx)} className="text-neutral-500 hover:text-red-400 transition-colors p-1.5 ml-1">
                   <X size={14} />
                 </button>
               </div>
@@ -364,38 +622,64 @@ export const Chat: React.FC = () => {
           </div>
         )}
 
-        <div className="p-3 sm:p-4 bg-luxury-50/80 dark:bg-luxury-950/80 backdrop-blur-md border-t border-luxury-200 dark:border-luxury-800 transition-colors duration-500 flex items-center gap-2 sm:gap-3">
-          <div className="flex-1 flex items-center gap-2 bg-white dark:bg-luxury-900 rounded-full px-4 py-2 border border-luxury-200 dark:border-luxury-700 focus-within:border-gold-500 transition-colors shadow-sm">
-            <input 
-              type="file" 
-              multiple
-              ref={fileInputRef} 
-              onChange={handleFileChange} 
-              className="hidden" 
-              accept="image/*,.pdf,.doc,.docx"
-            />
-            <button onClick={() => fileInputRef.current?.click()} className="text-luxury-400 hover:text-gold-600 dark:hover:text-gold-400 transition-colors shrink-0">
-              <Paperclip size={20} />
+        {/* Input Area (Telegram Web Style) */}
+        <div className="relative z-10 p-3 bg-transparent">
+          <div className="max-w-3xl mx-auto flex items-end gap-2">
+            
+            {/* Input Field Box */}
+            <div className="flex-1 bg-neutral-900/90 backdrop-blur-xl rounded-2xl sm:rounded-full flex items-end relative border border-neutral-700/60 focus-within:border-amber-500/50 transition-colors shadow-sm">
+              <input 
+                type="file" 
+                multiple
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                className="hidden" 
+                accept="image/*,.pdf,.doc,.docx"
+              />
+              <button 
+                onClick={() => fileInputRef.current?.click()} 
+                className="p-3 pb-3.5 text-neutral-500 hover:text-amber-400 transition-colors shrink-0 rtl:pr-4 ltr:pl-4 self-end focus:outline-none"
+              >
+                <Paperclip size={22} className="transform -rotate-45" />
+              </button>
+              <textarea 
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                placeholder={isAr ? "رسالة..." : "Message..."} 
+                className="flex-1 bg-transparent border-none focus:outline-none font-medium text-neutral-50 text-[15px] min-w-0 px-2 py-4 placeholder:text-neutral-500 resize-none overflow-y-auto no-scrollbar"
+                rows={1}
+                style={{ minHeight: '56px' }}
+              />
+            </div>
+            
+            {/* Send / Mic Button */}
+            <button 
+              onClick={input.trim() || pendingAttachments.length > 0 ? handleSend : () => {}} 
+              className={`w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-full flex items-center justify-center transition-all shadow-lg self-end focus:outline-none ${(input.trim() || pendingAttachments.length > 0) ? 'bg-amber-500 text-neutral-950 hover:bg-amber-400 scale-100' : 'bg-neutral-800 border border-neutral-700/50 text-neutral-400 hover:text-amber-400 scale-100'}`}
+            >
+              <AnimatePresence mode="wait">
+                {(input.trim() || pendingAttachments.length > 0) ? (
+                  <motion.div key="send" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <Send size={22} className="ltr:ml-1 rtl:mr-1 rtl:-scale-x-100" />
+                  </motion.div>
+                ) : (
+                  <motion.div key="mic" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <Mic size={22} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </button>
-            <input 
-              type="text" 
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              placeholder={t('chat.placeholder')} 
-              className="flex-1 bg-transparent border-none focus:outline-none font-medium text-luxury-900 dark:text-luxury-50 text-[15px] min-w-0" 
-            />
           </div>
-          <button 
-            onClick={handleSend} 
-            disabled={!input.trim() && pendingAttachments.length === 0}
-            className="w-10 h-10 sm:w-11 sm:h-11 shrink-0 bg-gold-600 text-white rounded-full flex items-center justify-center hover:bg-gold-500 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Send size={18} className={isAr ? 'mr-1' : 'ml-1'} />
-          </button>
         </div>
-      </Card>
 
+      </div>
     </div>
   );
 };
@@ -927,17 +1211,20 @@ export const Booking: React.FC<{ setView?: (v: ViewModule) => void, isQuickBooki
             </div>
           </div>
           
-          <div className="grid grid-cols-7 gap-2 text-center mb-2">
-            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => <div key={d} className="text-xs font-bold text-luxury-500">{d}</div>)}
+          <div className="grid grid-cols-5 gap-2 text-center mb-2">
+            {['Su', 'Mo', 'Tu', 'We', 'Th'].map(d => <div key={d} className="text-xs font-bold text-luxury-500">{d}</div>)}
           </div>
-          <div className="grid grid-cols-7 gap-2">
-            {Array.from({ length: startDayOfWeek }).map((_, i) => (
-              <div key={`empty-${i}`} className="aspect-square"></div>
+          <div className="grid grid-cols-5 gap-2">
+            {Array.from({ length: startDayOfWeek > 4 ? 0 : startDayOfWeek }).map((_, i) => (
+              <div key={`empty-${i}`} className="h-20 lg:h-24"></div>
             ))}
             
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const day = i + 1;
               const cellDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+              
+              const isNativeWeekend = cellDate.getDay() === 5 || cellDate.getDay() === 6; // Friday, Saturday
+              if (isNativeWeekend) return null;
               
               // Standardize local date string to YYYY-MM-DD safely without timezone shifts
               const yyyy = cellDate.getFullYear();
@@ -949,7 +1236,7 @@ export const Booking: React.FC<{ setView?: (v: ViewModule) => void, isQuickBooki
               const blocks = blockedSlots.filter(b => b.date === dateString);
               
               const isPastOrTooSoon = cellDate < minBookableDate;
-              const isWeekend = cellDate.getDay() === 5 || cellDate.getDay() === 6; // Friday, Saturday
+              const isWeekend = isNativeWeekend && !(globalState.openedDays || []).includes(dateString);
               
               // Check if ANY existing booking is exactly on this day with ALL_DAY flag
               const allClientBookingsForDay = Object.values(globalState.clients)
@@ -999,7 +1286,7 @@ export const Booking: React.FC<{ setView?: (v: ViewModule) => void, isQuickBooki
                       setSelectedTime(null);
                     }
                   }}
-                  className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm transition-all relative ${
+                  className={`h-20 lg:h-24 rounded-lg flex flex-col items-center justify-center text-sm transition-all relative ${
                     isSelected ? 'bg-gradient-to-br from-gold-600 to-gold-400 dark:from-gold-400 dark:to-gold-600 text-white dark:text-luxury-950 font-bold shadow-[0_0_10px_rgba(166,136,104,0.5)] border-none' : 
                     isFullyBlocked ? 'bg-red-500/5 border border-red-500/10 text-red-400 opacity-60' :
                     'bg-luxury-50/50 dark:bg-luxury-950/50 border border-luxury-200 dark:border-luxury-800 font-medium text-luxury-700 dark:text-luxury-300 hover:bg-luxury-100 dark:hover:bg-luxury-800 hover:border-luxury-300 dark:hover:border-luxury-600'

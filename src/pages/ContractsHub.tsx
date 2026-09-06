@@ -347,187 +347,156 @@ export const ContractsHub: React.FC = () => {
           VIEW 1: NO CONTRACT SELECTED (USER SEES CONTRACTS CATALOG / DIRECTORY ONLY)
           ========================================================================= */}
       {!selectedContract ? (
-        <div className="space-y-8">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-luxury-200/80 dark:border-luxury-800/80 pb-6">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="p-2 rounded-xl bg-gold-500/10 text-gold-700 dark:text-gold-400">
-                  <FileText size={22} />
-                </span>
-                <span className="text-xs font-bold tracking-wider uppercase text-gold-700 dark:text-gold-400">
-                  {isAr ? 'منظومة العقود والاتفاقيات القانونية' : 'Legal & Executive Agreements'}
-                </span>
-              </div>
-              <h1 className="font-serif text-3xl font-bold bg-gradient-to-r from-luxury-900 via-gold-800 to-luxury-700 dark:from-luxury-50 dark:via-gold-400 dark:to-luxury-200 text-transparent bg-clip-text">
-                {t('contracts.hubTitle')}
-              </h1>
-              <p className="text-luxury-600 dark:text-luxury-400 text-sm font-medium mt-1">
-                {activeTab === 'pending' ? t('contracts.pendingListSubtitle') : t('contracts.signedListSubtitle')}
+        <div className="space-y-12">
+          {/* Header Section */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-luxury-200 dark:border-luxury-800 pb-8">
+            <div className="space-y-3">
+              <h2 className="font-serif text-4xl sm:text-5xl font-bold bg-gradient-to-r from-luxury-900 to-luxury-600 dark:from-luxury-50 dark:to-luxury-400 text-transparent bg-clip-text">
+                {isAr ? 'الوثائق والعقود' : 'Legal Documents'}
+              </h2>
+              <p className="text-sm text-luxury-500 max-w-xl leading-relaxed">
+                {isAr 
+                  ? 'مساحتك الآمنة لمراجعة واعتماد جميع العقود والمستندات القانونية الخاصة بمشروعك بخطوات بسيطة وموثوقة.'
+                  : 'Your secure vault for reviewing and executing all legal agreements and project documents with a seamless digital signature.'}
               </p>
             </div>
-
-            {/* Switch between Pending and Signed */}
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <button
-                onClick={() => setActiveTab('pending')}
-                className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
-                  activeTab === 'pending'
-                    ? 'bg-gradient-to-r from-gold-700 to-gold-600 dark:from-gold-600 dark:to-gold-400 text-white dark:text-luxury-950 shadow-md'
-                    : 'bg-luxury-100 hover:bg-luxury-200 dark:bg-luxury-900 dark:hover:bg-luxury-800 text-luxury-700 dark:text-luxury-300 border border-luxury-200 dark:border-luxury-800'
-                }`}
-              >
-                <Clock size={16} />
-                <span>{t('contracts.tabPending')}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${activeTab === 'pending' ? 'bg-white/20 text-white dark:text-luxury-950' : 'bg-luxury-200 dark:bg-luxury-800 text-luxury-700 dark:text-luxury-300'}`}>
-                  {pendingContracts.length}
-                </span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('signed')}
-                className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
-                  activeTab === 'signed'
-                    ? 'bg-gradient-to-r from-gold-700 to-gold-600 dark:from-gold-600 dark:to-gold-400 text-white dark:text-luxury-950 shadow-md'
-                    : 'bg-luxury-100 hover:bg-luxury-200 dark:bg-luxury-900 dark:hover:bg-luxury-800 text-luxury-700 dark:text-luxury-300 border border-luxury-200 dark:border-luxury-800'
-                }`}
-              >
-                <BadgeCheck size={16} />
-                <span>{t('contracts.tabSigned')}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${activeTab === 'signed' ? 'bg-white/20 text-white dark:text-luxury-950' : 'bg-luxury-200 dark:bg-luxury-800 text-luxury-700 dark:text-luxury-300'}`}>
-                  {signedContracts.length}
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* Search Bar */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="relative w-full sm:max-w-md">
-              <Search className={`absolute top-1/2 -translate-y-1/2 text-luxury-400 ${isAr ? 'right-3' : 'left-3'}`} size={17} />
-              <input
-                type="text"
-                placeholder={isAr ? 'بحث برقم العقد أو الاسم أو التصنيف...' : 'Search contract by ref, title, or category...'}
+            
+            <div className="relative w-full md:w-72">
+              <div className="absolute inset-y-0 ltr:left-0 rtl:right-0 ltr:pl-4 rtl:pr-4 flex items-center pointer-events-none">
+                <Search size={16} className="text-luxury-400" />
+              </div>
+              <input 
+                type="text" 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full bg-luxury-50 dark:bg-luxury-950 border border-luxury-200 dark:border-luxury-800 rounded-xl py-2.5 text-sm text-luxury-900 dark:text-luxury-50 focus:outline-none focus:border-gold-700 dark:focus:border-gold-500 shadow-inner ${isAr ? 'pr-10 pl-4' : 'pl-10 pr-4'}`}
+                placeholder={isAr ? "البحث برقم المرجع أو الاسم..." : "Search documents..."}
+                className="w-full bg-white dark:bg-luxury-900 border border-luxury-200 dark:border-luxury-800 rounded-full py-3 ltr:pl-10 rtl:pr-10 ltr:pr-4 rtl:pl-4 text-sm font-medium focus:outline-none focus:border-gold-500 transition-colors placeholder:text-luxury-400 text-luxury-900 dark:text-luxury-100"
               />
-            </div>
-
-            <div className="text-xs text-luxury-500 font-medium self-end sm:self-center">
-              {isAr 
-                ? `إجمالي المعروض: ${filteredList.length} ${activeTab === 'pending' ? 'عقد بانتظار توقيعك' : 'عقد معتمد ومختوم'}` 
-                : `Showing ${filteredList.length} ${activeTab === 'pending' ? 'pending contracts' : 'signed contracts'}`}
             </div>
           </div>
 
-          {/* Contracts List Grid */}
+          {/* Segmented Control Tabs */}
+          <div className="flex items-center gap-2 p-1 bg-luxury-100/50 dark:bg-luxury-900/50 rounded-2xl w-max">
+            <button
+              onClick={() => setActiveTab('pending')}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${
+                activeTab === 'pending' 
+                  ? 'bg-white dark:bg-luxury-800 text-luxury-900 dark:text-luxury-50 shadow-sm' 
+                  : 'text-luxury-500 hover:text-luxury-700 dark:hover:text-luxury-300'
+              }`}
+            >
+              <Clock size={16} />
+              <span>{isAr ? 'بانتظار الإجراء' : 'Action Required'}</span>
+              {pendingContracts.length > 0 && (
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-gold-500 text-white text-[10px] ml-1">
+                  {pendingContracts.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('signed')}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${
+                activeTab === 'signed' 
+                  ? 'bg-white dark:bg-luxury-800 text-luxury-900 dark:text-luxury-50 shadow-sm' 
+                  : 'text-luxury-500 hover:text-luxury-700 dark:hover:text-luxury-300'
+              }`}
+            >
+              <ShieldCheck size={16} />
+              <span>{isAr ? 'المعتمدة' : 'Executed'}</span>
+            </button>
+          </div>
+
+          {/* List Layout */}
           {filteredList.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredList.map((c) => (
+            <div className="flex flex-col gap-4">
+              {filteredList.map((c, index) => (
                 <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
                   key={c.id}
-                  whileHover={{ y: -3 }}
                   onClick={() => handleSelectContract(c.id)}
-                  className="group cursor-pointer rounded-2xl bg-white dark:bg-luxury-900 border border-luxury-200/90 dark:border-luxury-800 shadow-sm hover:shadow-xl hover:border-gold-500/60 transition-all duration-300 p-6 flex flex-col justify-between"
+                  className="group relative cursor-pointer bg-white dark:bg-luxury-900/40 border border-luxury-200 dark:border-luxury-800 hover:border-gold-500/50 rounded-3xl p-5 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 transition-all duration-300 hover:shadow-xl hover:shadow-gold-500/5 overflow-hidden"
                 >
-                  <div className="space-y-4">
-                    {/* Top Tag Row */}
-                    <div className="flex justify-between items-center gap-2">
-                      <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-luxury-100 dark:bg-luxury-800 text-luxury-700 dark:text-luxury-300 border border-luxury-200 dark:border-luxury-700">
-                        {c.referenceNumber}
-                      </span>
+                  {/* Decorative line for pending */}
+                  {!c.isSignedByClient && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-gold-400 to-gold-600 dark:from-gold-500 dark:to-gold-700"></div>
+                  )}
 
-                      {c.isSignedByClient ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-                          <CheckCircle2 size={14} />
-                          {c.isSealedByArchitect ? (isAr ? 'مختوم ومعتمد' : 'Executed & Sealed') : (isAr ? 'تم توقيعك' : 'Signed')}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 animate-pulse">
-                          <Clock size={14} />
-                          {isAr ? 'بانتظار توقيعك' : 'Pending Signature'}
-                        </span>
-                      )}
+                  <div className="flex items-start sm:items-center gap-6 flex-1">
+                    <div className={`hidden sm:flex items-center justify-center w-16 h-16 rounded-2xl shrink-0 transition-colors ${
+                      c.isSignedByClient 
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                        : 'bg-gold-500/10 text-gold-600 dark:text-gold-400 group-hover:bg-gold-500/20'
+                    }`}>
+                      {c.isSignedByClient ? <CheckCircle2 size={28} strokeWidth={1.5} /> : <FileText size={28} strokeWidth={1.5} />}
                     </div>
-
-                    {/* Title */}
-                    <div>
-                      <h3 className="font-serif font-bold text-xl text-luxury-900 dark:text-luxury-50 group-hover:text-gold-700 dark:group-hover:text-gold-400 transition-colors">
+                    
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-md bg-luxury-100 dark:bg-luxury-800 text-luxury-600 dark:text-luxury-400">
+                          {c.referenceNumber}
+                        </span>
+                        <span className="text-[10px] sm:text-xs font-bold text-luxury-400 flex items-center gap-1">
+                          <Calendar size={12} /> {c.dateCreated}
+                        </span>
+                      </div>
+                      <h3 className="font-serif font-bold text-lg sm:text-xl text-luxury-900 dark:text-luxury-50 group-hover:text-gold-700 dark:group-hover:text-gold-400 transition-colors">
                         {isAr && c.titleAr ? c.titleAr : c.title}
                       </h3>
-                      <p className="text-xs text-luxury-500 dark:text-luxury-400 mt-1.5 font-medium line-clamp-2 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-luxury-500 dark:text-luxury-400 font-medium max-w-2xl leading-relaxed line-clamp-1 sm:line-clamp-2">
                         {isAr && c.descriptionAr ? c.descriptionAr : c.description}
                       </p>
                     </div>
-
-                    {/* Metadata & Value */}
-                    <div className="grid grid-cols-2 gap-3 pt-3 border-t border-luxury-100 dark:border-luxury-800/60 text-xs">
-                      <div>
-                        <span className="text-luxury-400 block text-[11px] mb-0.5">{t('contracts.type')}</span>
-                        <span className="font-semibold text-luxury-700 dark:text-luxury-300">
-                          {isAr && c.typeAr ? c.typeAr : c.type}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-luxury-400 block text-[11px] mb-0.5">{t('contracts.value')}</span>
-                        <span className="font-bold text-gold-700 dark:text-gold-400 font-sans">
-                          {c.totalValue ? `${c.totalValue.toLocaleString()} BHD` : 'N/A'}
-                        </span>
-                      </div>
-                    </div>
                   </div>
 
-                  {/* Primary CTA button on the card */}
-                  <div className="mt-6 pt-4 border-t border-luxury-100 dark:border-luxury-800/80 flex items-center justify-between">
-                    <div className="text-[11px] text-luxury-400 flex items-center gap-1">
-                      <Calendar size={13} />
-                      <span>{c.dateCreated}</span>
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-4 shrink-0 sm:pl-8 sm:border-l border-luxury-100 dark:border-luxury-800">
+                    <div className="text-left sm:text-right">
+                      <span className="block text-[10px] text-luxury-400 mb-0.5 uppercase tracking-wider">{t('contracts.value')}</span>
+                      <span className="font-bold text-sm sm:text-base text-luxury-900 dark:text-luxury-50">
+                        {c.totalValue ? `${c.totalValue.toLocaleString()} BHD` : 'N/A'}
+                      </span>
                     </div>
-
+                    
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSelectContract(c.id);
-                      }}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-sm ${
+                      className={`px-5 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 transition-all ${
                         c.isSignedByClient
                           ? 'bg-luxury-100 hover:bg-luxury-200 dark:bg-luxury-800 dark:hover:bg-luxury-700 text-luxury-900 dark:text-luxury-100'
-                          : 'bg-gradient-to-r from-gold-700 to-gold-600 hover:from-gold-800 hover:to-gold-700 text-white'
+                          : 'bg-luxury-900 hover:bg-luxury-800 dark:bg-white dark:hover:bg-luxury-100 text-white dark:text-luxury-900 shadow-md hover:shadow-lg hover:scale-105'
                       }`}
                     >
-                      {c.isSignedByClient ? <Eye size={15} /> : <FileText size={15} />}
-                      <span>{c.isSignedByClient ? t('contracts.viewSignedDoc') : t('contracts.readAndReview')}</span>
-                      {isAr ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+                      {c.isSignedByClient ? <Eye size={16} /> : <PenTool size={16} />}
+                      <span>{c.isSignedByClient ? (isAr ? 'عرض العقد' : 'View Document') : (isAr ? 'مراجعة وتوقيع' : 'Review & Sign')}</span>
                     </button>
                   </div>
                 </motion.div>
               ))}
             </div>
           ) : (
-            <Card className="text-center py-16">
-              <FileText size={48} className="mx-auto text-luxury-400 mb-3 opacity-50" />
-              <h3 className="font-bold text-sm text-luxury-900 dark:text-luxury-100">
+            <div className="flex flex-col items-center justify-center py-24 px-4 text-center border border-dashed border-luxury-200 dark:border-luxury-800 rounded-3xl bg-luxury-50/50 dark:bg-luxury-900/20">
+              <div className="w-20 h-20 bg-luxury-100 dark:bg-luxury-800 rounded-full flex items-center justify-center mb-6">
+                <FileText size={32} className="text-luxury-400" />
+              </div>
+              <h3 className="font-serif text-2xl font-bold text-luxury-900 dark:text-luxury-50 mb-2">
                 {activeTab === 'pending' 
-                  ? (isAr ? 'لا توجد عقود معلقة' : 'No pending contracts') 
-                  : (isAr ? 'لا توجد عقود معتمدة' : 'No signed contracts')}
+                  ? (isAr ? 'لا توجد مستندات معلقة' : 'No Pending Documents') 
+                  : (isAr ? 'لا توجد مستندات معتمدة' : 'No Executed Documents')}
               </h3>
-              <p className="text-xs text-luxury-500 mt-1 max-w-sm mx-auto">
+              <p className="text-luxury-500 max-w-sm text-sm">
                 {activeTab === 'pending'
-                  ? (isAr ? 'لم يتم إرسال عقود جديدة بانتظار توقيعك.' : 'No new contracts are pending your signature.')
-                  : (isAr ? 'بمجرد توقيعك لأي عقد سيتم أرشفته هنا.' : 'Signed contracts will appear here.')}
+                  ? (isAr ? 'لم يتم إرسال أي عقود جديدة بانتظار اعتمادك وتوقيعك في الوقت الحالي.' : 'There are no new contracts pending your signature at this time.')
+                  : (isAr ? 'بمجرد توقيعك على أي عقد سيتم حفظه وأرشفته هنا للرجوع إليه في أي وقت.' : 'Once you sign a contract, it will be securely archived here for your records.')}
               </p>
               {activeTab === 'pending' && signedContracts.length > 0 && (
-                <Button 
-                  variant="outline" 
+                <button 
                   onClick={() => setActiveTab('signed')}
-                  className="mt-4 text-xs py-2 px-4"
+                  className="mt-8 px-6 py-2.5 rounded-full border border-luxury-300 dark:border-luxury-700 text-sm font-bold text-luxury-700 dark:text-luxury-300 hover:bg-luxury-100 dark:hover:bg-luxury-800 transition-colors"
                 >
-                  {isAr ? 'عرض العقود المعتمدة' : 'View Signed Contracts'}
-                </Button>
+                  {isAr ? 'عرض العقود المعتمدة' : 'View Executed Contracts'}
+                </button>
               )}
-            </Card>
+            </div>
           )}
         </div>
       ) : (

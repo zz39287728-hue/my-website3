@@ -84,7 +84,8 @@ export interface CartItem {
 
 export interface ChatMessage {
   id: string;
-  sender: 'ARCHITECT' | 'CLIENT' | 'SUPPORT';
+  sender: 'ARCHITECT' | 'CLIENT' | 'SUPPORT' | string;
+  recipient?: 'ARCHITECT' | 'CLIENT' | 'SUPPORT' | string;
   text: string;
   attachment?: { name: string; size: string; url?: string; type?: string };
   attachments?: { name: string; size: string; url?: string; type?: string }[];
@@ -95,6 +96,7 @@ export interface ChatMessage {
     completed?: boolean;
   };
   timestamp: string;
+  status?: 'SENT' | 'DELIVERED' | 'READ';
 }
 
 export interface ContractItem {
@@ -221,6 +223,7 @@ export enum ViewModule {
   SUPPORT = 'SUPPORT',
   PROFILE = 'PROFILE',
   FILES = 'FILES',
+  DESIGN_PREFERENCES = 'DESIGN_PREFERENCES',
   // Admin Modules
   ADMIN_DIRECTORY = 'ADMIN_DIRECTORY',
   ADMIN_ARCHIVE = 'ADMIN_ARCHIVE',
@@ -306,6 +309,7 @@ export interface GlobalState {
   clients: Record<string, ClientProjectData>;
   activeClientId: string;
   blockedSlots: BlockedSlot[];
+  openedDays?: string[];
   companyFinances: CompanyFinances;
   isImpersonating?: boolean;
   originalRole?: Role;

@@ -2,6 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewModule } from '../types';
 import { useAppContext } from '../App';
+import { 
+  LayoutDashboard, Package, Image as ImageIcon, Briefcase, 
+  Calendar, MessageSquare, FileCheck, PenTool, CreditCard, 
+  HelpCircle, User, Settings, Menu, X, Maximize, Minimize,
+  DollarSign, Ticket, LogOut, ArrowLeft, ChevronDown, Users,
+  CheckSquare, Archive, Headphones, Bell, ShoppingBag, Store,
+  BookOpen, Activity, Lock, Check, Folder, Receipt, Globe, Moon, Edit2, Upload
+} from 'lucide-react';
+
+interface LayoutProps {
+  children: React.ReactNode;
+  currentView: ViewModule;
+  setCurrentView: (view: ViewModule) => void;
+}
+
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
@@ -16,25 +31,15 @@ const AppleIcon = () => (
     <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.04 2.26-.79 3.59-.76 1.56.04 2.88.74 3.65 1.9-3.3 1.95-2.76 6.3 1.05 7.74-.78 2.08-1.99 4.14-3.37 5.29zM12.03 7.25c-.15-3.47 2.76-6.08 6.12-6.25.26 3.4-2.88 6.27-6.12 6.25z"/>
   </svg>
 );
-import { 
-  LayoutDashboard, Package, Image as ImageIcon, Briefcase, 
-  Calendar, MessageSquare, FileCheck, PenTool, CreditCard, 
-  HelpCircle, User, Settings, Menu, X, Maximize, Minimize,
-  DollarSign, Ticket, LogOut, ArrowLeft, ChevronDown, Users,
-  CheckSquare, Archive, Headphones, Bell, ShoppingBag, Store,  BookOpen, Activity, Lock, Check, Folder, Receipt
-} from 'lucide-react';
-
-interface LayoutProps {
-  children: React.ReactNode;
-  currentView: ViewModule;
-  setCurrentView: (view: ViewModule) => void;
-}
 
 export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurrentView }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+  
   // showGuestLockModal is from context
   const [loginInput, setLoginInput] = useState('');
   const [showOTP, setShowOTP] = useState(false);
@@ -72,11 +77,49 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurren
   };
 
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const { t, lang, role, setRole, globalState, setGlobalState, showGuestLockModal, setShowGuestLockModal } = useAppContext();
+  
+  const { t, lang, setLang, theme, setTheme, role, setRole, globalState, setGlobalState, showGuestLockModal, setShowGuestLockModal } = useAppContext();
   const isRTL = lang === 'ar';
 
   const notificationsRef = useRef<HTMLDivElement>(null);
   const clientDropdownRef = useRef<HTMLDivElement>(null);
+
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setGlobalState(prev => {
+        if (role === 'ARCHITECT') {
+          return { ...prev, architectProfile: { ...prev.architectProfile, avatar: url } };
+        } else if (role === 'CLIENT' || role === 'GUEST') {
+          const client = prev.clients[prev.activeClientId];
+          if (!client) return prev;
+          return {
+            ...prev,
+            clients: { ...prev.clients, [prev.activeClientId]: { ...client, profile: { ...client.profile, avatar: url } } }
+          };
+        }
+        return prev;
+      });
+    }
+  };
+
+  const handleNameChange = (newName: string) => {
+    setGlobalState(prev => {
+      if (role === 'ARCHITECT') {
+        return { ...prev, architectProfile: { ...prev.architectProfile, name: newName } };
+      } else if (role === 'CLIENT' || role === 'GUEST') {
+        const client = prev.clients[prev.activeClientId];
+        if (!client) return prev;
+        return {
+          ...prev,
+          clients: { ...prev.clients, [prev.activeClientId]: { ...client, profile: { ...client.profile, name: newName } } }
+        };
+      }
+      return prev;
+    });
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -85,6 +128,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurren
       }
       if (clientDropdownRef.current && !clientDropdownRef.current.contains(event.target as Node)) {
         setIsClientDropdownOpen(false);
+      }
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+        setIsProfileDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -97,17 +143,28 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurren
 
   const isGuest = activeClient?.profile?.isGuest;
 
-  const clientNavItems = [
-    { id: ViewModule.DASHBOARD, label: t('nav.dashboard'), icon: LayoutDashboard, locked: isGuest },
+  const clientNavItems = isGuest ? [
     { id: ViewModule.PACKAGES, label: t('nav.packages'), icon: Package },
     { id: ViewModule.COLLECTIONS, label: t("nav.collections") || (lang === "ar" ? "البوتيك" : "Boutique"), icon: Store },
     { id: ViewModule.BOOKING, label: t('nav.booking'), icon: Calendar },
-    { id: ViewModule.VISION_BUILDER, label: t('nav.vision'), icon: ImageIcon, locked: isGuest },
-    { id: ViewModule.PORTFOLIO_VR, label: t('nav.portfolio'), icon: Briefcase, locked: isGuest },
-    { id: ViewModule.FILES, label: t('nav.files') || (lang === 'ar' ? 'ملفاتي' : 'My Files'), icon: Folder, locked: isGuest },
-    { id: ViewModule.CONTRACTS, label: t('nav.contracts'), icon: PenTool, locked: isGuest },
-    { id: ViewModule.INVOICE, label: t('nav.invoice'), icon: Receipt },
-    { id: ViewModule.SUPPORT, label: t('nav.support'), icon: HelpCircle, locked: isGuest },
+    { id: ViewModule.DASHBOARD, label: t('nav.dashboard'), icon: LayoutDashboard, locked: true },
+    { id: ViewModule.VISION_BUILDER, label: t('nav.vision'), icon: ImageIcon, locked: true },
+    { id: ViewModule.PORTFOLIO_VR, label: t('nav.portfolio'), icon: Briefcase, locked: true },
+    { id: ViewModule.FILES, label: t('nav.files') || (lang === 'ar' ? 'ملفاتي' : 'My Files'), icon: Folder, locked: true },
+    { id: ViewModule.CONTRACTS, label: t('nav.contracts'), icon: PenTool, locked: true },
+    { id: ViewModule.INVOICE, label: t('nav.invoice'), icon: Receipt, locked: true },
+    { id: ViewModule.SUPPORT, label: t('nav.support'), icon: HelpCircle, locked: true },
+  ] : [
+    { id: ViewModule.DASHBOARD, label: t('nav.dashboard'), icon: LayoutDashboard, locked: false },
+    { id: ViewModule.PACKAGES, label: t('nav.packages'), icon: Package },
+    { id: ViewModule.COLLECTIONS, label: t("nav.collections") || (lang === "ar" ? "البوتيك" : "Boutique"), icon: Store },
+    { id: ViewModule.BOOKING, label: t('nav.booking'), icon: Calendar },
+    { id: ViewModule.VISION_BUILDER, label: t('nav.vision'), icon: ImageIcon, locked: false },
+    { id: ViewModule.PORTFOLIO_VR, label: t('nav.portfolio'), icon: Briefcase, locked: false },
+    { id: ViewModule.FILES, label: t('nav.files') || (lang === 'ar' ? 'ملفاتي' : 'My Files'), icon: Folder, locked: false },
+    { id: ViewModule.CONTRACTS, label: t('nav.contracts'), icon: PenTool, locked: false },
+    { id: ViewModule.INVOICE, label: t('nav.invoice'), icon: Receipt, locked: false },
+    { id: ViewModule.SUPPORT, label: t('nav.support'), icon: HelpCircle, locked: false },
   ];
 
   const adminNavItems = [
@@ -143,6 +200,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurren
   const isSupportClientWorkspace = role === 'SUPPORT' && [ViewModule.SUPPORT_CLIENT_DASHBOARD, ViewModule.SUPPORT_CLIENT_CHAT, ViewModule.SUPPORT_CLIENT_TICKETS, ViewModule.SUPPORT_CLIENT_FINANCE].includes(currentView);
   const isClientWorkspace = isArchitectClientWorkspace || isSupportClientWorkspace;
   const isAr = lang === 'ar';
+
+  const unreadChatCount = activeClient?.chatHistory?.filter(msg => 
+    (msg.sender === 'ARCHITECT' || msg.sender === 'SUPPORT') && msg.status !== 'READ'
+  ).length || 0;
 
   let navItems = clientNavItems;
   if (role === 'ARCHITECT') {
@@ -564,8 +625,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurren
                 title={t('nav.chat')}
               >
                 <MessageSquare size={18} />
-                {activeClient?.hasUnreadMessages && (
-                  <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-red-500 border-2 border-luxury-50 dark:border-luxury-950 shadow-md" />
+                {unreadChatCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-neutral-900 border-2 border-luxury-50 dark:border-luxury-950 shadow-md text-[9px] font-bold flex items-center justify-center">
+                    {unreadChatCount}
+                  </span>
                 )}
               </motion.button>
             )}
@@ -676,34 +739,95 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurren
               </motion.button>
             )}
 
-            <motion.div 
-              whileHover={{ scale: 1.02 }}
-              className="flex items-center gap-4 cursor-pointer group"
-              onClick={() => { if (currentView !== settingsView) setCurrentView(settingsView); }}
-            >
-              <div className="hidden md:flex flex-col items-end justify-center h-full">
-                {role === 'SUPPORT' ? (
-                  <span className="text-xl md:text-2xl font-serif font-bold text-luxury-900 dark:text-luxury-50 group-hover:text-gold-700 dark:group-hover:text-gold-400 transition-colors">
-                    {lang === 'ar' ? 'فريق الدعم الفني' : 'Support Team'}
-                  </span>
-                ) : (
-                  <>
-                    <span className="text-sm font-bold text-luxury-900 dark:text-luxury-50 group-hover:text-gold-700 dark:group-hover:text-gold-400 transition-colors">
-                      {role === 'ARCHITECT' ? globalState.architectProfile.name : activeClient.profile.name}
+            <div className="relative" ref={profileDropdownRef}>
+              <motion.div 
+                whileHover={{ scale: 1.02 }}
+                className="flex items-center gap-4 cursor-pointer group"
+                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+              >
+                <div className="hidden md:flex flex-col items-end justify-center h-full">
+                  {role === 'SUPPORT' ? (
+                    <span className="text-xl md:text-2xl font-serif font-bold text-luxury-900 dark:text-luxury-50 group-hover:text-gold-700 dark:group-hover:text-gold-400 transition-colors">
+                      {lang === 'ar' ? 'فريق الدعم الفني' : 'Support Team'}
                     </span>
-                    <span className="text-xs font-bold bg-gradient-to-r from-gold-700 to-gold-600 dark:from-gold-300 dark:to-gold-500 text-transparent bg-clip-text">
-                      {role === 'ARCHITECT' ? globalState.architectProfile.title : activeClient.profile.tier}
-                    </span>
-                  </>
+                  ) : (
+                    <>
+                      <span className="text-sm font-bold text-luxury-900 dark:text-luxury-50 group-hover:text-gold-700 dark:group-hover:text-gold-400 transition-colors">
+                        {role === 'ARCHITECT' ? globalState.architectProfile.name : activeClient.profile.name}
+                      </span>
+                      <span className="text-xs font-bold bg-gradient-to-r from-gold-700 to-gold-600 dark:from-gold-300 dark:to-gold-500 text-transparent bg-clip-text">
+                        {role === 'ARCHITECT' ? globalState.architectProfile.title : activeClient.profile.tier}
+                      </span>
+                    </>
+                  )}
+                </div>
+                <motion.img 
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  src={role === 'ARCHITECT' ? globalState.architectProfile.avatar : role === 'SUPPORT' ? 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=200' : activeClient.profile.avatar} 
+                  alt="Profile" 
+                  className="w-10 h-10 rounded-full border-2 border-gold-700 dark:border-gold-500 object-cover shadow-[0_0_10px_rgba(166,136,104,0.3)]" 
+                />
+              </motion.div>
+
+              <AnimatePresence>
+                {isProfileDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className={`absolute ${isRTL ? 'left-0' : 'right-0'} top-full mt-2 w-72 bg-white dark:bg-luxury-950 border border-luxury-200 dark:border-luxury-800 rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col`}
+                  >
+                    <div className="p-4 bg-white dark:bg-luxury-950">
+                      <div className="flex items-center gap-4">
+                        <div 
+                          className="relative group cursor-pointer flex-shrink-0" 
+                          onClick={() => avatarInputRef.current?.click()}
+                        >
+                          <img 
+                            src={role === 'ARCHITECT' ? globalState.architectProfile.avatar : role === 'SUPPORT' ? 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=200' : activeClient.profile.avatar} 
+                            alt="Profile" 
+                            className="w-14 h-14 rounded-full object-cover border-2 border-gold-500/30"
+                          />
+                          <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-sm">
+                            <Upload size={16} className="text-white" />
+                          </div>
+                          <input 
+                            type="file" 
+                            ref={avatarInputRef} 
+                            onChange={handleAvatarChange} 
+                            className="hidden" 
+                            accept="image/*"
+                          />
+                        </div>
+                        <div className="flex-1 flex flex-col items-start w-full overflow-hidden">
+                          {role === 'SUPPORT' ? (
+                            <p className="font-bold text-luxury-900 dark:text-luxury-50 text-base">
+                              {lang === 'ar' ? 'فريق الدعم الفني' : 'Support Team'}
+                            </p>
+                          ) : (
+                            <div className="relative flex items-center w-full">
+                              <input 
+                                value={role === 'ARCHITECT' ? globalState.architectProfile.name : activeClient.profile.name}
+                                onChange={(e) => handleNameChange(e.target.value)}
+                                className={`w-full bg-transparent border-b border-transparent focus:border-gold-500 hover:border-luxury-300 dark:hover:border-luxury-700 outline-none font-bold text-luxury-900 dark:text-luxury-50 text-base transition-colors px-0 ${isRTL ? "text-right pl-6" : "text-left pr-6"}`}
+                                placeholder={isRTL ? "الاسم" : "Name"}
+                              />
+                              <Edit2 size={12} className={`absolute ${isRTL ? "left-0" : "right-0"} text-luxury-400 pointer-events-none`} />
+                            </div>
+                          )}
+                          <p className="text-sm font-bold text-luxury-500 dark:text-luxury-400 mt-1 text-left rtl:text-right w-full">
+                            {role === 'ARCHITECT' ? globalState.architectProfile.title : role === 'SUPPORT' ? 'Support' : activeClient.profile.tier}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    
+                  </motion.div>
                 )}
-              </div>
-              <motion.img 
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                src={role === 'ARCHITECT' ? globalState.architectProfile.avatar : role === 'SUPPORT' ? 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=200' : activeClient.profile.avatar} 
-                alt="Profile" 
-                className="w-10 h-10 rounded-full border-2 border-gold-700 dark:border-gold-500 object-cover shadow-[0_0_10px_rgba(166,136,104,0.3)]" 
-              />
-            </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
         </header>
 
